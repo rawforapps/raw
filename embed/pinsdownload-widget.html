@@ -1,0 +1,539 @@
+<!--
+  PinsDownload — Tool Widget (Custom HTML block)
+  ================================================
+  Paste this whole file's contents into a WordPress "Custom HTML" block
+  (or a WPCode "HTML Snippet") on any page — including a page you design
+  yourself in Kadence. It's fully self-contained: its own CSS, its own
+  JS, no theme dependency.
+
+  REQUIRES: the companion backend file (pinsdownload-backend-wpcode.php)
+  installed as a WPCode PHP Snippet, "Run Everywhere", on the SAME site.
+  This widget calls relative paths (/wp-json/..., /?pinsdownload_stream=1)
+  so it works on whatever domain it's embedded on with no editing needed,
+  as long as that backend snippet is active on that same site.
+
+  Scope note: this lean embed intentionally leaves out the mood board
+  and PWA install-prompt features from the full theme build — just the
+  paste-a-link-get-a-file tool. Ask if you want those added back in.
+-->
+<div id="pinsdownload-widget" class="pdw">
+	<form class="pdw-form" novalidate>
+		<label class="pdw-sr-only" for="pdw-input">Pinterest link</label>
+		<input type="url" id="pdw-input" class="pdw-input" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your Pinterest link here">
+		<button type="submit" class="pdw-submit">
+			<svg class="pdw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+			Download
+		</button>
+	</form>
+
+	<div class="pdw-progress" hidden>
+		<div class="pdw-progress-bar"></div>
+		<span class="pdw-progress-label">0%</span>
+	</div>
+
+	<div class="pdw-status" role="status" aria-live="polite"></div>
+
+	<div class="pdw-results" hidden></div>
+</div>
+
+<style>
+	#pinsdownload-widget, #pinsdownload-widget * {
+		box-sizing: border-box;
+	}
+	.pdw {
+		--pdw-red: #e60023;
+		--pdw-red-hover: #cc001f;
+		--pdw-ink: #111111;
+		--pdw-ink-soft: #5b5b62;
+		--pdw-bg: #fafafa;
+		--pdw-border: #ececee;
+		--pdw-radius: 14px;
+		--pdw-shadow: 0 4px 14px rgba(17,17,17,0.08);
+		max-width: 640px;
+		margin: 0 auto;
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+		color: var(--pdw-ink);
+		background: #fff;
+		border-radius: 18px;
+		box-shadow: var(--pdw-shadow);
+		padding: 20px;
+	}
+	.pdw-sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(1px,1px,1px,1px);
+	}
+	.pdw-form {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+	.pdw-input {
+		flex: 1 1 240px;
+		min-width: 0;
+		padding: 15px 16px;
+		font-size: 1rem;
+		border: 2px solid var(--pdw-border);
+		border-radius: 12px;
+		background: var(--pdw-bg);
+		min-height: 44px;
+	}
+	.pdw-input:focus {
+		outline: none;
+		border-color: var(--pdw-red);
+		box-shadow: 0 0 0 4px rgba(230,0,35,0.12);
+	}
+	.pdw-submit {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		background: var(--pdw-red);
+		color: #fff;
+		border: none;
+		padding: 15px 22px;
+		font-size: 1rem;
+		font-weight: 700;
+		border-radius: 12px;
+		cursor: pointer;
+		min-height: 44px;
+		touch-action: manipulation;
+	}
+	.pdw-submit:hover { background: var(--pdw-red-hover); }
+	.pdw-submit:disabled { cursor: default; position: relative; color: transparent; }
+	.pdw-submit:disabled::after {
+		content: "";
+		position: absolute;
+		width: 18px; height: 18px;
+		border: 2.5px solid rgba(255,255,255,0.4);
+		border-top-color: #fff;
+		border-radius: 50%;
+		animation: pdw-spin 0.7s linear infinite;
+	}
+	@keyframes pdw-spin { to { transform: rotate(360deg); } }
+	.pdw-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+	.pdw-progress {
+		margin-top: 14px;
+		background: var(--pdw-border);
+		border-radius: 999px;
+		height: 8px;
+		overflow: hidden;
+	}
+	.pdw-progress-bar {
+		height: 100%;
+		background: linear-gradient(90deg, var(--pdw-red), #ff5470);
+		width: 0%;
+	}
+	.pdw-progress-label {
+		display: block;
+		font-size: 0.8rem;
+		color: var(--pdw-ink-soft);
+		margin-top: 4px;
+	}
+	.pdw-status {
+		margin-top: 10px;
+		font-size: 0.95rem;
+		min-height: 1.3em;
+		font-weight: 500;
+	}
+	.pdw-status.is-error { color: var(--pdw-red); }
+	.pdw-results { margin-top: 18px; text-align: left; }
+
+	.pdw-single {
+		display: flex;
+		gap: 16px;
+		background: var(--pdw-bg);
+		border: 1px solid var(--pdw-border);
+		border-radius: var(--pdw-radius);
+		padding: 16px;
+		flex-wrap: wrap;
+	}
+	.pdw-thumb {
+		width: 130px; height: 130px;
+		object-fit: cover;
+		border-radius: 10px;
+		background: var(--pdw-border);
+		flex-shrink: 0;
+	}
+	.pdw-single-body { flex: 1 1 200px; min-width: 0; }
+	.pdw-title { font-weight: 600; margin: 0 0 10px; word-break: break-word; }
+	.pdw-quality-label { display: block; font-size: 0.82rem; color: var(--pdw-ink-soft); margin-bottom: 4px; }
+	.pdw-quality { width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--pdw-border); margin-bottom: 10px; }
+	.pdw-btn {
+		display: inline-flex; align-items: center; gap: 8px;
+		border: none; padding: 12px 18px; border-radius: 10px;
+		font-weight: 700; cursor: pointer; font-size: 0.92rem; min-height: 44px;
+	}
+	.pdw-btn-primary { background: var(--pdw-red); color: #fff; }
+	.pdw-btn-primary:hover { background: var(--pdw-red-hover); }
+	.pdw-btn-ghost { background: #fff; color: var(--pdw-ink); border: 1.5px solid var(--pdw-border); }
+
+	.pdw-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(110px,1fr));
+		gap: 10px;
+	}
+	.pdw-grid-item {
+		position: relative;
+		background: var(--pdw-bg);
+		border: 1px solid var(--pdw-border);
+		border-radius: 10px;
+		padding: 8px;
+		font-size: 0.72rem;
+	}
+	.pdw-grid-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; background: var(--pdw-border); }
+	.pdw-grid-item input { position: absolute; top: 8px; left: 8px; width: 18px; height: 18px; }
+	.pdw-grid-meta { color: var(--pdw-ink-soft); text-transform: capitalize; }
+	.pdw-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+	.pdw-done {
+		margin-top: 14px;
+		padding: 12px 16px;
+		background: #e6f6ee;
+		border-radius: 10px;
+		display: flex; align-items: center; justify-content: space-between;
+		gap: 10px; flex-wrap: wrap;
+	}
+	.pdw-done p { margin: 0; font-weight: 600; color: #1e8e5a; }
+
+	@media (max-width: 480px) {
+		.pdw-form { flex-direction: column; }
+		.pdw-submit { width: 100%; justify-content: center; }
+	}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+( function () {
+	'use strict';
+
+	var widget = document.getElementById( 'pinsdownload-widget' );
+	if ( ! widget ) { return; }
+
+	var STRINGS = {
+		fetching: 'Fetching your link...',
+		failed: 'We could not read that link. Check it is a public Pinterest link and try again.',
+		private: 'This content is private, login-only, or an invitation link. We only work with public Pinterest links.',
+		gone: 'This pin looks like it has been deleted or is no longer available.',
+		blockedOrChanged: 'We reached Pinterest but could not read this pin. Pinterest may be blocking automated requests right now, or changed its page format. Please try again in a moment.',
+		zipping: 'Building your ZIP file...',
+		saved: 'Saved to your device.',
+		rateLimited: 'You are going a bit fast. Please wait a few seconds and try again.'
+	};
+
+	var REST_URL = window.location.origin + '/wp-json/pinsdownload/v1/resolve';
+	var STREAM_BASE = window.location.origin + '/';
+	var ZIP_AFTER = 5;
+
+	var form = widget.querySelector( '.pdw-form' );
+	var input = widget.querySelector( '.pdw-input' );
+	var submitBtn = widget.querySelector( '.pdw-submit' );
+	var progress = widget.querySelector( '.pdw-progress' );
+	var progressBar = widget.querySelector( '.pdw-progress-bar' );
+	var progressLabel = widget.querySelector( '.pdw-progress-label' );
+	var status = widget.querySelector( '.pdw-status' );
+	var results = widget.querySelector( '.pdw-results' );
+
+	var progressTimer = null;
+	var lastUrl = '';
+
+	function isLikelyPinterestUrl( value ) {
+		return /pinterest\.[a-z.]+\/|pin\.it\//i.test( value );
+	}
+
+	function formatBytes( bytes ) {
+		if ( ! bytes ) { return ''; }
+		var units = [ 'B', 'KB', 'MB', 'GB' ];
+		var i = 0, n = bytes;
+		while ( n >= 1024 && i < units.length - 1 ) { n /= 1024; i++; }
+		return n.toFixed( n >= 10 || i === 0 ? 0 : 1 ) + ' ' + units[ i ];
+	}
+
+	function guessExtension( mediaType, url ) {
+		var m = /\.(mp4|jpg|jpeg|png|gif|webp)(\?|$)/i.exec( url || '' );
+		if ( m ) { return m[1].toLowerCase(); }
+		if ( mediaType === 'video' ) { return 'mp4'; }
+		if ( mediaType === 'gif' ) { return 'gif'; }
+		return 'jpg';
+	}
+
+	function slugFilename( title, suffix, ext ) {
+		var base = ( title || 'pinsdownload' ).toString().toLowerCase()
+			.replace( /[^a-z0-9]+/g, '-' ).replace( /(^-|-$)/g, '' ).slice( 0, 60 );
+		return ( base || 'pinsdownload' ) + ( suffix ? '-' + suffix : '' ) + '.' + ext;
+	}
+
+	function streamUrlFor( mediaUrl, filename ) {
+		var params = new URLSearchParams();
+		params.set( 'pinsdownload_stream', '1' );
+		params.set( 'url', mediaUrl );
+		params.set( 'filename', filename );
+		return STREAM_BASE + '?' + params.toString();
+	}
+
+	function triggerDownload( href ) {
+		var a = document.createElement( 'a' );
+		a.href = href;
+		a.rel = 'noopener';
+		document.body.appendChild( a );
+		a.click();
+		a.remove();
+	}
+
+	function setStatus( message, isError ) {
+		status.textContent = message || '';
+		status.classList.toggle( 'is-error', !! isError );
+	}
+
+	function startProgress() {
+		var pct = 0;
+		progress.hidden = false;
+		progressBar.style.width = '0%';
+		progressLabel.textContent = '0%';
+		submitBtn.disabled = true;
+		progressTimer = setInterval( function () {
+			pct = Math.min( pct + Math.random() * 18, 90 );
+			progressBar.style.width = pct + '%';
+			progressLabel.textContent = Math.round( pct ) + '%';
+		}, 220 );
+	}
+
+	function finishProgress() {
+		clearInterval( progressTimer );
+		progressBar.style.width = '100%';
+		progressLabel.textContent = '100%';
+		submitBtn.disabled = false;
+		setTimeout( function () { progress.hidden = true; }, 300 );
+	}
+
+	function showDone() {
+		setStatus( STRINGS.saved );
+		var existing = widget.querySelector( '.pdw-done' );
+		if ( existing ) { existing.remove(); }
+		var box = document.createElement( 'div' );
+		box.className = 'pdw-done';
+		box.innerHTML = '<p>Saved to your device.</p><button type="button" class="pdw-btn pdw-btn-ghost pdw-again">Download this link again</button>';
+		box.querySelector( '.pdw-again' ).addEventListener( 'click', function () {
+			start( lastUrl );
+		} );
+		widget.appendChild( box );
+	}
+
+	function start( url ) {
+		url = ( url || '' ).trim();
+		if ( ! url ) { return; }
+		lastUrl = url;
+		results.hidden = true;
+		results.innerHTML = '';
+		setStatus( STRINGS.fetching );
+		startProgress();
+
+		fetch( REST_URL, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify( { url: url } )
+		} )
+			.then( function ( res ) { return res.json(); } )
+			.then( function ( data ) {
+				finishProgress();
+				handleResponse( data );
+			} )
+			.catch( function () {
+				finishProgress();
+				setStatus( STRINGS.failed, true );
+			} );
+	}
+
+	function handleResponse( data ) {
+		if ( ! data || ! data.ok ) {
+			var key = data && data.error ? data.error : 'failed';
+			var map = {
+				private: STRINGS.private,
+				deleted: STRINGS.gone,
+				blocked_or_changed: STRINGS.blockedOrChanged,
+				invalid_url: STRINGS.failed,
+				unsupported: STRINGS.failed,
+				fetch_failed: STRINGS.failed,
+				rate_limited: STRINGS.rateLimited
+			};
+			setStatus( map[ key ] || STRINGS.failed, true );
+			return;
+		}
+
+		setStatus( '' );
+		results.hidden = false;
+
+		var isBulk = [ 'carousel', 'story', 'board', 'profile', 'ideas', 'answers' ].indexOf( data.type ) !== -1;
+		if ( isBulk ) { renderMulti( data ); } else { renderSingle( data ); }
+	}
+
+	function renderSingle( data ) {
+		var item = data.items[0];
+		var wrap = document.createElement( 'div' );
+		wrap.className = 'pdw-single';
+
+		var thumb = document.createElement( 'img' );
+		thumb.className = 'pdw-thumb';
+		thumb.src = item.thumbnail || '';
+		thumb.alt = data.title || '';
+		wrap.appendChild( thumb );
+
+		var body = document.createElement( 'div' );
+		body.className = 'pdw-single-body';
+
+		var title = document.createElement( 'p' );
+		title.className = 'pdw-title';
+		title.textContent = data.title || '';
+		body.appendChild( title );
+
+		var label = document.createElement( 'label' );
+		label.className = 'pdw-quality-label';
+		label.textContent = 'Choose quality';
+		body.appendChild( label );
+
+		var select = document.createElement( 'select' );
+		select.className = 'pdw-quality';
+		item.resolutions.forEach( function ( res, i ) {
+			var opt = document.createElement( 'option' );
+			opt.value = String( i );
+			opt.textContent = res.label + ( res.filesize ? ' (' + formatBytes( res.filesize ) + ')' : '' );
+			select.appendChild( opt );
+		} );
+		body.appendChild( select );
+
+		var btn = document.createElement( 'button' );
+		btn.type = 'button';
+		btn.className = 'pdw-btn pdw-btn-primary';
+		btn.textContent = 'Download';
+		btn.addEventListener( 'click', function () {
+			var res = item.resolutions[ Number( select.value ) ];
+			if ( ! res ) { return; }
+			var ext = guessExtension( item.media_type, res.url );
+			triggerDownload( streamUrlFor( res.url, slugFilename( data.title, res.label, ext ) ) );
+			showDone();
+		} );
+		body.appendChild( btn );
+
+		wrap.appendChild( body );
+		results.innerHTML = '';
+		results.appendChild( wrap );
+	}
+
+	function renderMulti( data ) {
+		var wrap = document.createElement( 'div' );
+		var grid = document.createElement( 'div' );
+		grid.className = 'pdw-grid';
+
+		data.items.forEach( function ( item, index ) {
+			var cell = document.createElement( 'label' );
+			cell.className = 'pdw-grid-item';
+
+			var check = document.createElement( 'input' );
+			check.type = 'checkbox';
+			check.checked = true;
+			check.dataset.index = String( index );
+			cell.appendChild( check );
+
+			var img = document.createElement( 'img' );
+			img.src = item.thumbnail || '';
+			img.alt = item.pin_title || data.title || '';
+			cell.appendChild( img );
+
+			var meta = document.createElement( 'span' );
+			meta.className = 'pdw-grid-meta';
+			meta.textContent = item.media_type + ( item.resolutions[0] ? ' - ' + item.resolutions[0].label : '' );
+			cell.appendChild( meta );
+
+			grid.appendChild( cell );
+		} );
+		wrap.appendChild( grid );
+
+		var actions = document.createElement( 'div' );
+		actions.className = 'pdw-actions';
+
+		var dlSelected = document.createElement( 'button' );
+		dlSelected.type = 'button';
+		dlSelected.className = 'pdw-btn pdw-btn-primary';
+		dlSelected.textContent = 'Download selected';
+		dlSelected.addEventListener( 'click', function () {
+			getSelected( grid ).forEach( function ( i, order ) {
+				var item = data.items[ i ];
+				var res = item.resolutions[0];
+				if ( ! res ) { return; }
+				var filename = slugFilename( item.pin_title || data.title, String( order + 1 ), guessExtension( item.media_type, res.url ) );
+				setTimeout( function () { triggerDownload( streamUrlFor( res.url, filename ) ); }, order * 250 );
+			} );
+			showDone();
+		} );
+		actions.appendChild( dlSelected );
+
+		if ( data.items.length > ZIP_AFTER ) {
+			var zipBtn = document.createElement( 'button' );
+			zipBtn.type = 'button';
+			zipBtn.className = 'pdw-btn pdw-btn-ghost';
+			zipBtn.textContent = 'Download all as ZIP';
+			zipBtn.addEventListener( 'click', function () { downloadAsZip( data, grid ); } );
+			actions.appendChild( zipBtn );
+		}
+
+		wrap.appendChild( actions );
+		results.innerHTML = '';
+		results.appendChild( wrap );
+	}
+
+	function getSelected( grid ) {
+		return Array.prototype.slice.call( grid.querySelectorAll( 'input:checked' ) )
+			.map( function ( el ) { return Number( el.dataset.index ); } );
+	}
+
+	function downloadAsZip( data, grid ) {
+		var indexes = getSelected( grid );
+		if ( ! indexes.length || typeof JSZip === 'undefined' ) { return; }
+
+		setStatus( STRINGS.zipping );
+		startProgress();
+
+		var zip = new JSZip();
+		var fetchOne = function ( i ) {
+			var item = data.items[ i ];
+			var res = item.resolutions[0];
+			if ( ! res ) { return Promise.resolve(); }
+			var filename = slugFilename( item.pin_title || data.title, String( i + 1 ), guessExtension( item.media_type, res.url ) );
+			return fetch( streamUrlFor( res.url, filename ) )
+				.then( function ( r ) { return r.blob(); } )
+				.then( function ( blob ) { zip.file( filename, blob ); } )
+				.catch( function () {} );
+		};
+
+		Promise.all( indexes.map( fetchOne ) ).then( function () {
+			zip.generateAsync( { type: 'blob' } ).then( function ( blob ) {
+				finishProgress();
+				var url = URL.createObjectURL( blob );
+				var a = document.createElement( 'a' );
+				a.href = url;
+				a.download = slugFilename( data.title || 'pinsdownload', 'collection', 'zip' );
+				document.body.appendChild( a );
+				a.click();
+				a.remove();
+				setTimeout( function () { URL.revokeObjectURL( url ); }, 4000 );
+				showDone();
+			} );
+		} );
+	}
+
+	form.addEventListener( 'submit', function ( e ) {
+		e.preventDefault();
+		start( input.value );
+	} );
+
+	input.addEventListener( 'paste', function () {
+		setTimeout( function () {
+			var value = input.value.trim();
+			if ( isLikelyPinterestUrl( value ) ) { start( value ); }
+		}, 30 );
+	} );
+} )();
+</script>

@@ -63,6 +63,7 @@ function pinsdownload_assets() {
 					'failed'       => __( 'We could not read that link. Check it is a public Pinterest link and try again.', 'pinsdownload' ),
 					'private'      => __( 'This content is private, login-only, or an invitation link. We only work with public Pinterest links.', 'pinsdownload' ),
 					'gone'         => __( 'This pin looks like it has been deleted or is no longer available.', 'pinsdownload' ),
+					'blockedOrChanged' => __( 'We reached Pinterest but could not read this pin. Pinterest may be blocking automated requests right now, or changed its page format. Please try again in a moment.', 'pinsdownload' ),
 					'zipping'      => __( 'Building your ZIP file...', 'pinsdownload' ),
 					'saved'        => __( 'Saved to your device.', 'pinsdownload' ),
 					'rateLimited'  => __( 'You are going a bit fast. Please wait a few seconds and try again.', 'pinsdownload' ),

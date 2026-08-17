@@ -219,6 +219,7 @@
 			var map = {
 				private: cfg.strings.private,
 				deleted: cfg.strings.gone,
+				blocked_or_changed: cfg.strings.blockedOrChanged || cfg.strings.failed,
 				invalid_url: cfg.strings.failed,
 				unsupported: cfg.strings.failed,
 				fetch_failed: cfg.strings.failed,

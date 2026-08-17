@@ -10,7 +10,12 @@
  * browser behavior, which is inconsistent for video files.
  *
  * Only pinimg.com media URLs are allowed through, so this can't be used
- * as an open proxy to fetch arbitrary sites.
+ * as an open proxy to fetch arbitrary sites — that allowlist is the
+ * actual protection here, deliberately not a nonce. A nonce would tie
+ * this to a specific logged-in-page-load context, which breaks the
+ * moment this endpoint needs to be callable from a static Custom HTML
+ * block/WPCode embed that WordPress never templates a nonce into. This
+ * mirrors /resolve, which was already fully public for the same reason.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,13 +29,7 @@ function pinsdownload_maybe_stream() {
 		return;
 	}
 
-	$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
-	if ( ! wp_verify_nonce( $nonce, 'pinsdownload_stream' ) ) {
-		status_header( 403 );
-		exit;
-	}
-
-	$url = isset( $_GET['url'] ) ? esc_url_raw( wp_unslash( $_GET['url'] ) ) : '';
+	$url = isset( $_GET['url'] ) ? esc_url_raw( wp_unslash( $_GET['url'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$host = $url ? wp_parse_url( $url, PHP_URL_HOST ) : '';
 
 	if ( ! $host || ! preg_match( '/(^|\.)pinimg\.com$/i', $host ) ) {

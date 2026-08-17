@@ -30,6 +30,29 @@ add_action(
 				),
 			)
 		);
+
+		// Admin-only: hits a URL and reports exactly what was found, no
+		// error-code normalization. Use this from the browser (while
+		// logged into wp-admin) to see the real cause of a failed
+		// resolve — GET /wp-json/pinsdownload/v1/debug?url=...
+		register_rest_route(
+			'pinsdownload/v1',
+			'/debug',
+			array(
+				'methods'             => 'GET',
+				'callback'            => 'pinsdownload_rest_debug',
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+				'args'                => array(
+					'url' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
 	}
 );
 
@@ -79,15 +102,21 @@ function pinsdownload_rest_resolve( WP_REST_Request $request ) {
 
 	if ( empty( $result['ok'] ) ) {
 		$status_map = array(
-			'invalid_url'   => 400,
-			'private'       => 403,
-			'deleted'       => 404,
-			'unsupported'   => 422,
-			'fetch_failed'  => 502,
+			'invalid_url'        => 400,
+			'private'            => 403,
+			'deleted'            => 404,
+			'blocked_or_changed' => 503,
+			'unsupported'        => 422,
+			'fetch_failed'       => 502,
 		);
 		$status = $status_map[ $result['error'] ] ?? 400;
 		return new WP_REST_Response( $result, $status );
 	}
 
 	return new WP_REST_Response( $result, 200 );
+}
+
+function pinsdownload_rest_debug( WP_REST_Request $request ) {
+	$resolver = new PinsDownload_Resolver();
+	return new WP_REST_Response( $resolver->debug_fetch( $request->get_param( 'url' ) ), 200 );
 }

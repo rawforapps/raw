@@ -1,5 +1,68 @@
 <?php
 /**
+ * PinsDownload — Backend (WPCode PHP Snippet)
+ * ============================================
+ *
+ * Self-contained Pinterest extraction engine + REST API + streaming
+ * download proxy. No theme dependency — install this as a WPCode
+ * "PHP Snippet" (or in a small mu-plugin file) and it works with any
+ * active theme, including a page you design yourself in Kadence.
+ *
+ * INSTALL (WPCode):
+ *   1. WPCode -> Add Snippet -> Add Your Custom Code
+ *   2. Code Type: PHP Snippet
+ *   3. Paste this entire file's contents (including the <?php tag WPCode
+ *      strips automatically, or leave it, WPCode handles either)
+ *   4. Insertion: Auto Insert -> Run Everywhere
+ *   5. Save + Activate
+ *
+ * This registers:
+ *   POST /wp-json/pinsdownload/v1/resolve   — paste a Pinterest URL, get
+ *                                              back structured media data
+ *   GET  /wp-json/pinsdownload/v1/debug     — admin-only (must be logged
+ *                                              into wp-admin), returns the
+ *                                              raw diagnostic info for a
+ *                                              URL: HTTP status, whether
+ *                                              Pinterest's data blob was
+ *                                              found, a body snippet, and
+ *                                              whether a bot-challenge
+ *                                              page was served. Use this
+ *                                              first if resolve keeps
+ *                                              failing — visit e.g.
+ *                                              yoursite.com/wp-json/pinsdownload/v1/debug?url=https://www.pinterest.com/pin/1103804189961515698/
+ *                                              in a browser tab while
+ *                                              logged in as admin.
+ *   GET  /?pinsdownload_stream=1&url=...&filename=...
+ *                                            — streams the actual media
+ *                                              file through this server
+ *                                              (never stored on disk),
+ *                                              used by the download button
+ *                                              in the matching Custom HTML
+ *                                              widget.
+ *
+ * FIXED IN THIS VERSION (see the accompanying changelog message):
+ * the old "This pin looks like it has been deleted" message was a
+ * catch-all that fired on ANY extraction failure, not just genuinely
+ * deleted pins. It's now split into distinct, honest error states
+ * (deleted / private / blocked_or_changed / fetch_failed / unsupported),
+ * plus an Open Graph meta-tag fallback extractor and WP_DEBUG-gated
+ * diagnostic logging so a real failure on your live server tells you
+ * exactly what Pinterest sent back instead of guessing.
+ *
+ * IMPORTANT — this was written and fixed without live access to
+ * pinterest.com (this build environment's network is sandboxed and
+ * cannot reach it). The approach is sound and matches what established
+ * open-source Pinterest extractors use, but test it against the real
+ * test pin on your actual server before relying on it, and use the
+ * /debug endpoint above if it still doesn't resolve — it will tell you
+ * exactly what's different.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
  * Core Pinterest extraction engine.
  *
  * One entry point (resolve) handles every content type: single pin
@@ -17,10 +80,7 @@
  * extraction stops working, not the overall approach.
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
+if ( ! class_exists( 'PinsDownload_Resolver' ) ) :
 class PinsDownload_Resolver {
 
 	const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -920,3 +980,216 @@ class PinsDownload_Resolver {
 		);
 	}
 }
+endif;
+
+/**
+ * REST API: POST /wp-json/pinsdownload/v1/resolve
+ *
+ * Thin wrapper around PinsDownload_Resolver. Adds sanitization and a
+ * light per-IP rate limit so normal human traffic never hits friction
+ * (no CAPTCHA, no forced waits) while scripted abuse gets throttled.
+ */
+
+add_action(
+	'rest_api_init',
+	function () {
+		register_rest_route(
+			'pinsdownload/v1',
+			'/resolve',
+			array(
+				'methods'             => 'POST',
+				'callback'            => 'pinsdownload_rest_resolve',
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'url' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		// Admin-only: hits a URL and reports exactly what was found, no
+		// error-code normalization. Use this from the browser (while
+		// logged into wp-admin) to see the real cause of a failed
+		// resolve — GET /wp-json/pinsdownload/v1/debug?url=...
+		register_rest_route(
+			'pinsdownload/v1',
+			'/debug',
+			array(
+				'methods'             => 'GET',
+				'callback'            => 'pinsdownload_rest_debug',
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+				'args'                => array(
+					'url' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+	}
+);
+
+/**
+ * Reasonable per-IP throttle: 20 requests per 60 seconds. Wide enough
+ * that no normal human hits it, tight enough to blunt scripted abuse.
+ */
+if ( ! function_exists( 'pinsdownload_rate_limited' ) ) :
+
+function pinsdownload_rate_limited() {
+	$ip  = pinsdownload_client_ip();
+	$key = 'pdrl_' . md5( $ip );
+	$hits = (int) get_transient( $key );
+
+	if ( $hits >= 20 ) {
+		return true;
+	}
+
+	set_transient( $key, $hits + 1, 60 );
+	return false;
+}
+
+function pinsdownload_client_ip() {
+	foreach ( array( 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR' ) as $key ) {
+		if ( ! empty( $_SERVER[ $key ] ) ) {
+			$val = sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
+			$parts = explode( ',', $val );
+			return trim( $parts[0] );
+		}
+	}
+	return '0.0.0.0';
+}
+
+function pinsdownload_rest_resolve( WP_REST_Request $request ) {
+	if ( pinsdownload_rate_limited() ) {
+		return new WP_REST_Response(
+			array(
+				'ok'    => false,
+				'error' => 'rate_limited',
+			),
+			429
+		);
+	}
+
+	$url = $request->get_param( 'url' );
+
+	$resolver = new PinsDownload_Resolver();
+	$result   = $resolver->resolve( $url );
+
+	if ( empty( $result['ok'] ) ) {
+		$status_map = array(
+			'invalid_url'        => 400,
+			'private'            => 403,
+			'deleted'            => 404,
+			'blocked_or_changed' => 503,
+			'unsupported'        => 422,
+			'fetch_failed'       => 502,
+		);
+		$status = $status_map[ $result['error'] ] ?? 400;
+		return new WP_REST_Response( $result, $status );
+	}
+
+	return new WP_REST_Response( $result, 200 );
+}
+
+function pinsdownload_rest_debug( WP_REST_Request $request ) {
+	$resolver = new PinsDownload_Resolver();
+	return new WP_REST_Response( $resolver->debug_fetch( $request->get_param( 'url' ) ), 200 );
+}
+
+/**
+ * Streaming download proxy.
+ *
+ * Downloads are streamed straight from Pinterest's own media CDN through
+ * this server to the browser, chunk by chunk, and never written to disk
+ * or buffered in full server memory. This is what makes the frontend's
+ * one-click download button actually force a save (proper
+ * Content-Disposition + filename) instead of depending on cross-origin
+ * browser behavior, which is inconsistent for video files.
+ *
+ * Only pinimg.com media URLs are allowed through, so this can't be used
+ * as an open proxy to fetch arbitrary sites — that allowlist is the
+ * actual protection here, deliberately not a nonce. A nonce would tie
+ * this to a specific logged-in-page-load context, which breaks the
+ * moment this endpoint needs to be callable from a static Custom HTML
+ * block/WPCode embed that WordPress never templates a nonce into. This
+ * mirrors /resolve, which was already fully public for the same reason.
+ */
+
+add_action( 'init', 'pinsdownload_maybe_stream' );
+
+function pinsdownload_maybe_stream() {
+	if ( empty( $_GET['pinsdownload_stream'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return;
+	}
+
+	$url = isset( $_GET['url'] ) ? esc_url_raw( wp_unslash( $_GET['url'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$host = $url ? wp_parse_url( $url, PHP_URL_HOST ) : '';
+
+	if ( ! $host || ! preg_match( '/(^|\.)pinimg\.com$/i', $host ) ) {
+		status_header( 400 );
+		exit;
+	}
+
+	$filename = isset( $_GET['filename'] ) ? sanitize_file_name( wp_unslash( $_GET['filename'] ) ) : 'pinsdownload-file';
+
+	if ( ! function_exists( 'curl_init' ) ) {
+		// Fall back to a redirect if cURL isn't available; not ideal
+		// (browser handles cross-origin download behavior itself) but
+		// keeps the tool working on minimal hosts.
+		wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect
+		exit;
+	}
+
+	$ch = curl_init( $url );
+	curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
+	curl_setopt( $ch, CURLOPT_MAXREDIRS, 5 );
+	curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+	curl_setopt( $ch, CURLOPT_TIMEOUT, 300 );
+	curl_setopt( $ch, CURLOPT_USERAGENT, PinsDownload_Resolver::USER_AGENT );
+
+	$headers_sent = false;
+
+	curl_setopt(
+		$ch,
+		CURLOPT_HEADERFUNCTION,
+		function ( $curl_handle, $header_line ) use ( &$headers_sent, $filename ) {
+			if ( ! $headers_sent && 0 === stripos( $header_line, 'content-type:' ) ) {
+				header( trim( $header_line ) );
+			}
+			if ( ! $headers_sent && 0 === stripos( $header_line, 'content-length:' ) ) {
+				header( trim( $header_line ) );
+			}
+			return strlen( $header_line );
+		}
+	);
+
+	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+	header( 'Cache-Control: no-store' );
+	header( 'X-Content-Type-Options: nosniff' );
+
+	curl_setopt(
+		$ch,
+		CURLOPT_WRITEFUNCTION,
+		function ( $curl_handle, $chunk ) {
+			echo $chunk; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			flush();
+			return strlen( $chunk );
+		}
+	);
+
+	while ( ob_get_level() > 0 ) {
+		ob_end_flush();
+	}
+
+	curl_exec( $ch );
+	curl_close( $ch );
+	exit;
+}
+
+endif;
