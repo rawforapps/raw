@@ -38,6 +38,9 @@ function pinsdownload_icon( $name, $class = '' ) {
 		'star'     => '<path d="M12 2l3 6.5 7 1-5 5 1.2 7L12 18l-6.2 3.5L7 14.5 2 9.5l7-1z"/>',
 		'zip'      => '<path d="M14.5 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5L14.5 3z"/><path d="M14 3v6h6M10 3v2M10 7v2M10 11v2"/>',
 		'download' => '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/>',
+		'photo'    => '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L5 19"/>',
+		'sparkle'  => '<path d="M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3z"/>',
+		'clock'    => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
 	);
 
 	if ( ! isset( $paths[ $name ] ) ) {
@@ -49,4 +52,22 @@ function pinsdownload_icon( $name, $class = '' ) {
 
 function pinsdownload_icon_e( $name, $class = '' ) {
 	echo pinsdownload_icon( $name, $class ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+
+/**
+ * A visibly-marked empty image slot, sized for its context (square,
+ * wide/16:9, tall/portrait). This is a layout placeholder, not content:
+ * swap the markup for a real <img> once you have a screenshot/photo for
+ * that spot. Ships empty on purpose rather than with a stock photo.
+ */
+function pinsdownload_image_slot( $ratio = 'wide', $label = '' ) {
+	if ( ! $label ) {
+		$label = __( 'Add an image here', 'pinsdownload' );
+	}
+	printf(
+		'<div class="pd-img-slot pd-img-slot--%1$s"><span class="pd-img-slot__icon">%2$s</span><span class="pd-img-slot__label">%3$s</span></div>',
+		esc_attr( $ratio ),
+		pinsdownload_icon( 'photo' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		esc_html( $label )
+	);
 }

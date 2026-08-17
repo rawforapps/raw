@@ -34,89 +34,114 @@ get_header();
 <?php do_action( 'pinsdownload_ad_slot', 'homepage_after_strip' ); ?>
 
 <!-- 3. How to Download a Pinterest Video -->
-<section class="pd-band pd-band--plain">
-	<div class="pd-container pd-section">
-		<div class="pd-card pd-reveal" id="how-to">
-			<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'video' ); ?></div>
-			<h2><?php esc_html_e( 'How to Download a Pinterest Video', 'pinsdownload' ); ?></h2>
-			<p><?php esc_html_e( 'A Pinterest video downloader works in three steps. Open Pinterest and find the video you want. Tap the share icon and choose "Copy Link." Paste the link above and tap Download.', 'pinsdownload' ); ?></p>
-			<ol class="pd-steps">
-				<li><?php esc_html_e( 'Open Pinterest and find the video you want.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Tap the share icon and choose "Copy Link."', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Paste the link above and tap Download.', 'pinsdownload' ); ?></li>
-			</ol>
-			<p><?php esc_html_e( 'Your video saves straight to your device. No app, no sign up.', 'pinsdownload' ); ?></p>
+<section class="pd-band pd-band--plain" id="how-to">
+	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-split">
+			<div class="pd-split__text">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'video' ); ?></div>
+				<h2><?php esc_html_e( 'How to Download a Pinterest Video', 'pinsdownload' ); ?></h2>
+				<p><?php esc_html_e( 'A Pinterest video downloader works in three steps. Open Pinterest and find the video you want. Tap the share icon and choose "Copy Link." Paste the link above and tap Download.', 'pinsdownload' ); ?></p>
+				<ol class="pd-steps">
+					<li><?php esc_html_e( 'Open Pinterest and find the video you want.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Tap the share icon and choose "Copy Link."', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Paste the link above and tap Download.', 'pinsdownload' ); ?></li>
+				</ol>
+				<p><?php esc_html_e( 'Your video saves straight to your device. No app, no sign up.', 'pinsdownload' ); ?></p>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: copying a pin link', 'pinsdownload' ) ); ?>
+			</div>
 		</div>
 	</div>
 </section>
 
 <!-- 4. Downloading From the Pinterest App -->
 <section class="pd-band pd-band--pink">
-	<div class="pd-container pd-section">
-		<div class="pd-card pd-reveal">
-			<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'profile' ); ?></div>
-			<h2><?php esc_html_e( 'Downloading From the Pinterest App', 'pinsdownload' ); ?></h2>
-			<p><?php esc_html_e( 'You can download Pinterest videos straight from the Pinterest app without leaving it open. Copy the link, come back here, and paste it.', 'pinsdownload' ); ?></p>
-			<ol class="pd-steps">
-				<li><?php esc_html_e( 'Open the Pinterest app and find your pin.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Tap the three dots (•••) on the pin.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Tap Copy Link.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Come back here, paste the link, and tap Download.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Your file saves to your Photos or Downloads folder.', 'pinsdownload' ); ?></li>
-			</ol>
+	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-split pd-split--reverse">
+			<div class="pd-split__text">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'profile' ); ?></div>
+				<h2><?php esc_html_e( 'Downloading From the Pinterest App', 'pinsdownload' ); ?></h2>
+				<p><?php esc_html_e( 'You can download Pinterest videos straight from the Pinterest app without leaving it open. Copy the link, come back here, and paste it.', 'pinsdownload' ); ?></p>
+				<ol class="pd-steps">
+					<li><?php esc_html_e( 'Open the Pinterest app and find your pin.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Tap the three dots (•••) on the pin.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Tap Copy Link.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Come back here, paste the link, and tap Download.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Your file saves to your Photos or Downloads folder.', 'pinsdownload' ); ?></li>
+				</ol>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: Pinterest app menu', 'pinsdownload' ) ); ?>
+			</div>
 		</div>
 	</div>
 </section>
 
 <!-- 5. Downloading on a Computer -->
 <section class="pd-band pd-band--plain">
-	<div class="pd-container pd-section">
-		<div class="pd-card pd-reveal">
-			<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'everywhere' ); ?></div>
-			<h2><?php esc_html_e( 'Downloading on a Computer', 'pinsdownload' ); ?></h2>
-			<p><?php esc_html_e( 'You can also download Pinterest videos on a computer, using any browser.', 'pinsdownload' ); ?></p>
-			<ol class="pd-steps">
-				<li><?php esc_html_e( 'Open Pinterest.com in your browser.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Click the pin, then copy the link from your address bar.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Paste it above and click Download.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( "The file lands in your computer's Downloads folder.", 'pinsdownload' ); ?></li>
-			</ol>
+	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-split">
+			<div class="pd-split__text">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'everywhere' ); ?></div>
+				<h2><?php esc_html_e( 'Downloading on a Computer', 'pinsdownload' ); ?></h2>
+				<p><?php esc_html_e( 'You can also download Pinterest videos on a computer, using any browser.', 'pinsdownload' ); ?></p>
+				<ol class="pd-steps">
+					<li><?php esc_html_e( 'Open Pinterest.com in your browser.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Click the pin, then copy the link from your address bar.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Paste it above and click Download.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( "The file lands in your computer's Downloads folder.", 'pinsdownload' ); ?></li>
+				</ol>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: desktop browser view', 'pinsdownload' ) ); ?>
+			</div>
 		</div>
 	</div>
 </section>
 
 <!-- 6. iPhone Guide -->
 <section class="pd-band pd-band--pink">
-	<div class="pd-container pd-section">
-		<div class="pd-card pd-reveal">
-			<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'everywhere' ); ?></div>
-			<h2><?php esc_html_e( 'How to Download Pinterest Videos on iPhone', 'pinsdownload' ); ?></h2>
-			<p><?php esc_html_e( "Yes, PinsDownload works on iPhone. You don't need an app, just Safari and a Pinterest link.", 'pinsdownload' ); ?></p>
-			<ol class="pd-steps">
-				<li><?php esc_html_e( 'Open the Pinterest app on your iPhone.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Tap the share icon on the video, then Copy Link.', 'pinsdownload' ); ?></li>
-				<li><?php echo esc_html( sprintf( /* translators: %s: site domain */ __( 'Open Safari and go to %s.', 'pinsdownload' ), 'pinsdownload.org' ) ); ?></li>
-				<li><?php esc_html_e( 'Paste the link and tap Download.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Save the video to your Photos app when it finishes.', 'pinsdownload' ); ?></li>
-			</ol>
+	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-split pd-split--reverse">
+			<div class="pd-split__text">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'everywhere' ); ?></div>
+				<h2><?php esc_html_e( 'How to Download Pinterest Videos on iPhone', 'pinsdownload' ); ?></h2>
+				<p><?php esc_html_e( "Yes, PinsDownload works on iPhone. You don't need an app, just Safari and a Pinterest link.", 'pinsdownload' ); ?></p>
+				<ol class="pd-steps">
+					<li><?php esc_html_e( 'Open the Pinterest app on your iPhone.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Tap the share icon on the video, then Copy Link.', 'pinsdownload' ); ?></li>
+					<li><?php echo esc_html( sprintf( /* translators: %s: site domain */ __( 'Open Safari and go to %s.', 'pinsdownload' ), 'pinsdownload.org' ) ); ?></li>
+					<li><?php esc_html_e( 'Paste the link and tap Download.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Save the video to your Photos app when it finishes.', 'pinsdownload' ); ?></li>
+				</ol>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: iPhone Safari view', 'pinsdownload' ) ); ?>
+			</div>
 		</div>
 	</div>
 </section>
 
 <!-- 7. Android Guide -->
 <section class="pd-band pd-band--plain">
-	<div class="pd-container pd-section">
-		<div class="pd-card pd-reveal">
-			<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'everywhere' ); ?></div>
-			<h2><?php esc_html_e( 'How to Download Pinterest Videos on Android', 'pinsdownload' ); ?></h2>
-			<p><?php esc_html_e( 'Yes, PinsDownload works on Android too, right inside Chrome.', 'pinsdownload' ); ?></p>
-			<ol class="pd-steps">
-				<li><?php esc_html_e( 'Open the Pinterest app and find your video.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'Tap Share, then Copy Link.', 'pinsdownload' ); ?></li>
-				<li><?php echo esc_html( sprintf( __( 'Open Chrome and visit %s.', 'pinsdownload' ), 'pinsdownload.org' ) ); ?></li>
-				<li><?php esc_html_e( 'Paste the link and tap Download.', 'pinsdownload' ); ?></li>
-				<li><?php esc_html_e( 'The video saves to your Gallery or Downloads folder.', 'pinsdownload' ); ?></li>
-			</ol>
+	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-split">
+			<div class="pd-split__text">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'everywhere' ); ?></div>
+				<h2><?php esc_html_e( 'How to Download Pinterest Videos on Android', 'pinsdownload' ); ?></h2>
+				<p><?php esc_html_e( 'Yes, PinsDownload works on Android too, right inside Chrome.', 'pinsdownload' ); ?></p>
+				<ol class="pd-steps">
+					<li><?php esc_html_e( 'Open the Pinterest app and find your video.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'Tap Share, then Copy Link.', 'pinsdownload' ); ?></li>
+					<li><?php echo esc_html( sprintf( __( 'Open Chrome and visit %s.', 'pinsdownload' ), 'pinsdownload.org' ) ); ?></li>
+					<li><?php esc_html_e( 'Paste the link and tap Download.', 'pinsdownload' ); ?></li>
+					<li><?php esc_html_e( 'The video saves to your Gallery or Downloads folder.', 'pinsdownload' ); ?></li>
+				</ol>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: Android Chrome view', 'pinsdownload' ) ); ?>
+			</div>
 		</div>
 	</div>
 </section>
@@ -162,10 +187,16 @@ get_header();
 
 <!-- 11. What Is a Pinterest Video Downloader -->
 <section class="pd-band pd-band--plain">
-	<div class="pd-container pd-section">
-		<div class="pd-card pd-reveal">
-			<h2><?php esc_html_e( 'What Is a Pinterest Video Downloader?', 'pinsdownload' ); ?></h2>
-			<p><?php esc_html_e( "A Pinterest video downloader is a free online tool that saves Pinterest videos, images, and GIFs to your device. Pinterest doesn't let you download videos directly from its app or website, so this tool reads the pin's link and gives you a direct file to save. You don't need an account, and nothing is stored on our end after your download finishes.", 'pinsdownload' ); ?></p>
+	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-split pd-split--reverse">
+			<div class="pd-split__text">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'sparkle' ); ?></div>
+				<h2><?php esc_html_e( 'What Is a Pinterest Video Downloader?', 'pinsdownload' ); ?></h2>
+				<p><?php esc_html_e( "A Pinterest video downloader is a free online tool that saves Pinterest videos, images, and GIFs to your device. Pinterest doesn't let you download videos directly from its app or website, so this tool reads the pin's link and gives you a direct file to save. You don't need an account, and nothing is stored on our end after your download finishes.", 'pinsdownload' ); ?></p>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'square', __( 'Illustration: link in, file out', 'pinsdownload' ) ); ?>
+			</div>
 		</div>
 	</div>
 </section>
@@ -175,7 +206,28 @@ get_header();
 	<div class="pd-container pd-section pd-reveal">
 		<h2><?php esc_html_e( 'What People Use It For', 'pinsdownload' ); ?></h2>
 		<p><?php esc_html_e( 'People download Pinterest content for all kinds of projects. Here are the most common ones.', 'pinsdownload' ); ?></p>
-		<p><?php esc_html_e( 'Home décor ideas · Recipes and food photography · Fashion inspiration · DIY and craft projects · Wedding planning · Travel photos · Fitness routines · Study notes and aesthetics · Art references · Mood boards', 'pinsdownload' ); ?></p>
+		<?php
+		// Same sentence as the source copy, split into pill tags for a
+		// less monotone layout. Re-joining these with " · " reproduces
+		// the original line exactly; no word was added or changed.
+		$pinsdownload_use_tags = array(
+			__( 'Home décor ideas', 'pinsdownload' ),
+			__( 'Recipes and food photography', 'pinsdownload' ),
+			__( 'Fashion inspiration', 'pinsdownload' ),
+			__( 'DIY and craft projects', 'pinsdownload' ),
+			__( 'Wedding planning', 'pinsdownload' ),
+			__( 'Travel photos', 'pinsdownload' ),
+			__( 'Fitness routines', 'pinsdownload' ),
+			__( 'Study notes and aesthetics', 'pinsdownload' ),
+			__( 'Art references', 'pinsdownload' ),
+			__( 'Mood boards', 'pinsdownload' ),
+		);
+		?>
+		<ul class="pd-tags">
+			<?php foreach ( $pinsdownload_use_tags as $pinsdownload_tag ) : ?>
+				<li><?php echo esc_html( $pinsdownload_tag ); ?></li>
+			<?php endforeach; ?>
+		</ul>
 	</div>
 </section>
 
@@ -257,19 +309,28 @@ get_header();
 		<h2><?php esc_html_e( 'What Users Say', 'pinsdownload' ); ?></h2>
 		<div class="pd-testimonials">
 			<div class="pd-testimonial">
-				<div class="pd-testimonial__stars">★★★★★</div>
+				<div class="pd-testimonial__head">
+					<?php pinsdownload_image_slot( 'avatar' ); ?>
+					<div class="pd-testimonial__stars">★★★★★</div>
+				</div>
 				<strong><?php esc_html_e( 'Good tool', 'pinsdownload' ); ?></strong>
 				<p>"<?php esc_html_e( 'Barely any ads, and it saved my pins in seconds. Exactly what I was looking for.', 'pinsdownload' ); ?>"</p>
 				<cite>— J. Ahmed, Aug 2026</cite>
 			</div>
 			<div class="pd-testimonial">
-				<div class="pd-testimonial__stars">★★★★★</div>
+				<div class="pd-testimonial__head">
+					<?php pinsdownload_image_slot( 'avatar' ); ?>
+					<div class="pd-testimonial__stars">★★★★★</div>
+				</div>
 				<strong><?php esc_html_e( 'Simple and fast', 'pinsdownload' ); ?></strong>
 				<p>"<?php esc_html_e( 'Just paste the link and it works. No sign up, no confusing steps.', 'pinsdownload' ); ?>"</p>
 				<cite>— M. Khan, Jul 2026</cite>
 			</div>
 			<div class="pd-testimonial">
-				<div class="pd-testimonial__stars">★★★★☆</div>
+				<div class="pd-testimonial__head">
+					<?php pinsdownload_image_slot( 'avatar' ); ?>
+					<div class="pd-testimonial__stars">★★★★☆</div>
+				</div>
 				<strong><?php esc_html_e( 'Does what it says', 'pinsdownload' ); ?></strong>
 				<p>"<?php esc_html_e( 'Downloaded a whole board for a mood board project, saved me a lot of time.', 'pinsdownload' ); ?>"</p>
 				<cite>— S. Rehman, Jul 2026</cite>
@@ -281,8 +342,13 @@ get_header();
 <!-- 19. What's New -->
 <section class="pd-band pd-band--plain">
 	<div class="pd-container pd-section pd-reveal">
+		<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'clock' ); ?></div>
 		<h2><?php esc_html_e( "What's New", 'pinsdownload' ); ?></h2>
-		<p><strong>Aug 2026 — <?php esc_html_e( 'Launched:', 'pinsdownload' ); ?></strong> <?php esc_html_e( 'PinsDownload is live, with video, image, GIF, story, carousel, board, and profile downloads all working from day one.', 'pinsdownload' ); ?></p>
+		<div class="pd-timeline">
+			<div class="pd-timeline-item">
+				<p><strong>Aug 2026 — <?php esc_html_e( 'Launched:', 'pinsdownload' ); ?></strong> <?php esc_html_e( 'PinsDownload is live, with video, image, GIF, story, carousel, board, and profile downloads all working from day one.', 'pinsdownload' ); ?></p>
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -343,10 +409,24 @@ $faq = array(
 <section class="pd-band pd-band--pink">
 	<div class="pd-container pd-section pd-reveal">
 		<h2><?php esc_html_e( 'Quick Answers', 'pinsdownload' ); ?></h2>
-		<p><strong><?php esc_html_e( 'Can I download Pinterest GIFs?', 'pinsdownload' ); ?></strong> <?php esc_html_e( "Yes, paste the GIF's link the same way as a video.", 'pinsdownload' ); ?></p>
-		<p><strong><?php esc_html_e( 'Where do my downloads go?', 'pinsdownload' ); ?></strong> <?php esc_html_e( "Your device's default Downloads folder, unless you choose another location.", 'pinsdownload' ); ?></p>
-		<p><strong><?php esc_html_e( 'Does this cost anything?', 'pinsdownload' ); ?></strong> <?php esc_html_e( "No, it's free with no limits on single downloads.", 'pinsdownload' ); ?></p>
-		<p><strong><?php esc_html_e( 'Is this the same as a "pin saver"?', 'pinsdownload' ); ?></strong> <?php esc_html_e( 'Yes. PinsDownload works as a Pinterest saver too, paste any pin link and save it the same way.', 'pinsdownload' ); ?></p>
+		<div class="pd-grid pd-grid--2up">
+			<div class="pd-grid-card pd-grid-card--qa">
+				<strong><?php esc_html_e( 'Can I download Pinterest GIFs?', 'pinsdownload' ); ?></strong>
+				<span><?php esc_html_e( "Yes, paste the GIF's link the same way as a video.", 'pinsdownload' ); ?></span>
+			</div>
+			<div class="pd-grid-card pd-grid-card--qa">
+				<strong><?php esc_html_e( 'Where do my downloads go?', 'pinsdownload' ); ?></strong>
+				<span><?php esc_html_e( "Your device's default Downloads folder, unless you choose another location.", 'pinsdownload' ); ?></span>
+			</div>
+			<div class="pd-grid-card pd-grid-card--qa">
+				<strong><?php esc_html_e( 'Does this cost anything?', 'pinsdownload' ); ?></strong>
+				<span><?php esc_html_e( "No, it's free with no limits on single downloads.", 'pinsdownload' ); ?></span>
+			</div>
+			<div class="pd-grid-card pd-grid-card--qa">
+				<strong><?php esc_html_e( 'Is this the same as a "pin saver"?', 'pinsdownload' ); ?></strong>
+				<span><?php esc_html_e( 'Yes. PinsDownload works as a Pinterest saver too, paste any pin link and save it the same way.', 'pinsdownload' ); ?></span>
+			</div>
+		</div>
 	</div>
 </section>
 

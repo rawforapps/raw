@@ -753,6 +753,24 @@ p {
 	font-size: 0.88rem;
 	color: var(--pd-ink-soft);
 }
+.pd-grid--2up {
+	grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+	.pd-grid--2up {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+.pd-grid-card--qa {
+	background: var(--pd-card);
+}
+.pd-grid-card--qa strong {
+	color: var(--pd-red);
+	font-size: 0.95rem;
+}
+.pd-grid-card--qa span {
+	font-size: 0.92rem;
+}
 
 /* FAQ accordion */
 .pd-faq-item {
@@ -809,10 +827,15 @@ p {
 	padding: 20px;
 	box-shadow: var(--pd-shadow);
 }
+.pd-testimonial__head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
 .pd-testimonial__stars {
 	color: var(--pd-red);
 	letter-spacing: 2px;
-	margin-bottom: 8px;
 }
 .pd-testimonial cite {
 	display: block;
@@ -947,6 +970,161 @@ p {
 	}
 }
 
+/* ------------------------------------------------------------------ *
+ * Image slots (empty-by-design placeholders — swap for real <img>)
+ * ------------------------------------------------------------------ */
+.pd-img-slot {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	width: 100%;
+	border: 2px dashed var(--pd-pink-deep);
+	border-radius: var(--pd-radius);
+	background: repeating-linear-gradient(135deg, rgba(255, 232, 236, 0.5) 0 12px, rgba(255, 255, 255, 0.5) 12px 24px);
+	color: var(--pd-pink-ink);
+}
+.pd-img-slot__icon {
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: var(--pd-shadow);
+}
+.pd-img-slot__icon .pd-icon {
+	width: 22px;
+	height: 22px;
+}
+.pd-img-slot__label {
+	font-size: 0.78rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	opacity: 0.75;
+}
+.pd-img-slot--wide {
+	aspect-ratio: 16 / 10;
+}
+.pd-img-slot--square {
+	aspect-ratio: 1 / 1;
+}
+.pd-img-slot--tall {
+	aspect-ratio: 3 / 4;
+}
+.pd-img-slot--avatar {
+	aspect-ratio: 1 / 1;
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+.pd-img-slot--avatar .pd-img-slot__icon {
+	width: 30px;
+	height: 30px;
+	box-shadow: none;
+	background: transparent;
+}
+.pd-img-slot--avatar .pd-img-slot__icon .pd-icon {
+	width: 16px;
+	height: 16px;
+}
+.pd-img-slot--avatar .pd-img-slot__label {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Split (zig-zag two column) layout
+ * ------------------------------------------------------------------ */
+.pd-split {
+	display: flex;
+	flex-direction: column;
+	gap: 28px;
+	align-items: center;
+}
+@media (min-width: 780px) {
+	.pd-split {
+		flex-direction: row;
+	}
+	.pd-split__text,
+	.pd-split__media {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+	.pd-split--reverse .pd-split__media {
+		order: -1;
+	}
+}
+.pd-split__media {
+	width: 100%;
+}
+.pd-split__media .pd-img-slot {
+	max-width: 420px;
+	margin: 0 auto;
+}
+
+/* Timeline (What's New) */
+.pd-timeline {
+	position: relative;
+	padding-left: 28px;
+	border-left: 2px solid var(--pd-pink-deep);
+}
+.pd-timeline-item {
+	position: relative;
+	padding-bottom: 4px;
+}
+.pd-timeline-item::before {
+	content: '';
+	position: absolute;
+	left: -34px;
+	top: 4px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: var(--pd-red);
+	box-shadow: 0 0 0 4px var(--pd-pink);
+}
+
+/* Tag pills (e.g. "What People Use It For") */
+.pd-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.pd-tags li {
+	background: #fff;
+	border: 1px solid var(--pd-border);
+	border-radius: 999px;
+	padding: 8px 16px;
+	font-size: 0.88rem;
+	font-weight: 500;
+	transition: transform 0.15s var(--pd-ease), box-shadow 0.15s var(--pd-ease), border-color 0.15s;
+}
+.pd-tags li:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--pd-shadow);
+	border-color: var(--pd-pink-deep);
+	color: var(--pd-red);
+}
+
+/* Auto-enriched content blocks (JS-driven, landing-page the_content()) */
+.pd-content-block {
+	padding: 36px 0;
+	border-bottom: 1px solid var(--pd-border);
+}
+.pd-content-block:last-child {
+	border-bottom: none;
+}
+.pd-content-block h2 {
+	font-size: 1.35rem;
+}
+
 /* Article (default page/post template) */
 .pd-article {
 	background: var(--pd-card);
@@ -965,6 +1143,16 @@ p {
 }
 .pd-article__content {
 	max-width: 70ch;
+}
+/* The landing-page content area gets split into full-width zig-zag
+   blocks by ui.js, so it shouldn't inherit the narrow prose measure
+   meant for plain legal/about pages. */
+.pd-enrich-content {
+	max-width: none;
+}
+.pd-enrich-content .pd-split__text ol,
+.pd-enrich-content .pd-split__text ul {
+	padding-left: 22px;
 }
 .pd-article__content h2 {
 	font-size: 1.3rem;

@@ -11,7 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="pd-container pd-section pd-reveal">
 		<h2><?php esc_html_e( 'What This Tool Can and Can\'t Download', 'pinsdownload' ); ?></h2>
 		<p><?php esc_html_e( 'PinsDownload works with any public Pinterest link. It can\'t open anything that needs a Pinterest login.', 'pinsdownload' ); ?></p>
-		<div class="pd-table pd-works-doesnt">
+		<div class="pd-split">
+		<div class="pd-split__text pd-table pd-works-doesnt">
 			<table>
 				<thead>
 					<tr>
@@ -38,6 +39,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</tr>
 				</tbody>
 			</table>
+			</div>
+			<div class="pd-split__media">
+				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: a resolved public pin', 'pinsdownload' ) ); ?>
+			</div>
+			</div>
 		</div>
-	</div>
-</section>
+	</section>

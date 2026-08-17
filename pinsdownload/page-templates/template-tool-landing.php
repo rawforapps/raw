@@ -48,7 +48,7 @@ if ( ! $format_strip ) {
 
 <?php if ( get_the_content() ) : ?>
 	<section class="pd-band pd-band--plain">
-		<div class="pd-container pd-section pd-reveal pd-card pd-article__content">
+		<div class="pd-container pd-section pd-article__content pd-enrich-content">
 			<?php the_content(); ?>
 		</div>
 	</section>
