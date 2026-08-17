@@ -11,51 +11,56 @@
  * INSTALL (WPCode):
  *   1. WPCode -> Add Snippet -> Add Your Custom Code
  *   2. Code Type: PHP Snippet
- *   3. Paste this entire file's contents (including the <?php tag WPCode
- *      strips automatically, or leave it, WPCode handles either)
+ *   3. Paste this entire file's contents
  *   4. Insertion: Auto Insert -> Run Everywhere
  *   5. Save + Activate
+ *
+ * If you already installed an earlier version of this snippet,
+ * REPLACE it entirely with this file rather than pasting alongside —
+ * this version changes how pins are fetched, not just error messages.
  *
  * This registers:
  *   POST /wp-json/pinsdownload/v1/resolve   — paste a Pinterest URL, get
  *                                              back structured media data
  *   GET  /wp-json/pinsdownload/v1/debug     — admin-only (must be logged
- *                                              into wp-admin), returns the
- *                                              raw diagnostic info for a
- *                                              URL: HTTP status, whether
- *                                              Pinterest's data blob was
- *                                              found, a body snippet, and
- *                                              whether a bot-challenge
- *                                              page was served. Use this
- *                                              first if resolve keeps
- *                                              failing — visit e.g.
+ *                                              into wp-admin), returns
+ *                                              raw diagnostics for a URL
+ *                                              including whether the
+ *                                              direct API call succeeded.
+ *                                              Try this first:
  *                                              yoursite.com/wp-json/pinsdownload/v1/debug?url=https://www.pinterest.com/pin/1103804189961515698/
- *                                              in a browser tab while
- *                                              logged in as admin.
  *   GET  /?pinsdownload_stream=1&url=...&filename=...
  *                                            — streams the actual media
  *                                              file through this server
- *                                              (never stored on disk),
- *                                              used by the download button
- *                                              in the matching Custom HTML
- *                                              widget.
+ *                                              (never stored on disk).
  *
- * FIXED IN THIS VERSION (see the accompanying changelog message):
- * the old "This pin looks like it has been deleted" message was a
- * catch-all that fired on ANY extraction failure, not just genuinely
- * deleted pins. It's now split into distinct, honest error states
- * (deleted / private / blocked_or_changed / fetch_failed / unsupported),
- * plus an Open Graph meta-tag fallback extractor and WP_DEBUG-gated
- * diagnostic logging so a real failure on your live server tells you
- * exactly what Pinterest sent back instead of guessing.
+ * WHAT CHANGED IN THIS VERSION (the actual fix, not just error
+ * messages): the previous version's primary path scraped the pin
+ * page's HTML for an embedded __PWS_DATA__ script tag. That was the
+ * likely root cause of the "always says deleted" bug. This version's
+ * primary path instead calls Pinterest's own public resource API
+ * directly —
  *
- * IMPORTANT — this was written and fixed without live access to
- * pinterest.com (this build environment's network is sandboxed and
- * cannot reach it). The approach is sound and matches what established
- * open-source Pinterest extractors use, but test it against the real
- * test pin on your actual server before relying on it, and use the
- * /debug endpoint above if it still doesn't resolve — it will tell you
- * exactly what's different.
+ *     GET https://www.pinterest.com/resource/PinResource/get/
+ *         ?data={"options":{"id":"<pin_id>","field_set_key":"detailed"}}
+ *
+ * — which is the actual technique every maintained open-source
+ * Pinterest client uses (cross-checked against three independent, real
+ * implementations: yt-dlp's pinterest.py, gallery-dl's pinterest.py,
+ * and seregazhuk/php-pinterest-bot). No page load, no real session —
+ * anonymous reads work with a placeholder CSRF token ('1234', the same
+ * value the PHP bot hardcodes for its logged-out state). Boards use a
+ * Board lookup + paginated BoardFeed the same way; profiles use
+ * UserActivityPins. The old HTML-scrape method is kept as an automatic
+ * fallback if the direct API call ever fails.
+ *
+ * IMPORTANT — this was fixed and cross-checked against real reference
+ * source code, but still not verified against a live Pinterest
+ * response: this build environment's network cannot reach
+ * pinterest.com at all (sandboxed). Test it against the real test pin
+ * on your actual server, and use the /debug endpoint above if it still
+ * doesn't resolve — its `primary_api_attempt` field will tell you
+ * exactly what Pinterest's API sent back.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -84,6 +89,75 @@ if ( ! class_exists( 'PinsDownload_Resolver' ) ) :
 class PinsDownload_Resolver {
 
 	const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+	/**
+	 * Pinterest's public resource API accepts an unvalidated placeholder
+	 * CSRF token for anonymous/logged-out reads — confirmed independently
+	 * by three real, maintained Pinterest clients (yt-dlp, gallery-dl,
+	 * and seregazhuk/php-pinterest-bot, which literally hardcodes this
+	 * same value for its logged-out state). No page load or real session
+	 * is needed to obtain one.
+	 */
+	const CSRF_TOKEN = '1234';
+
+	/**
+	 * Calls Pinterest's own public resource API directly — the approach
+	 * every maintained open-source Pinterest client actually uses, in
+	 * place of scraping a page for embedded JSON. GET
+	 * https://www.pinterest.com/resource/{Resource}Resource/get/ with
+	 * the options payload as a JSON query param. No cookies/session
+	 * beyond the placeholder CSRF token above.
+	 *
+	 * @return array{code:int,json:array}|null Null on transport/JSON failure.
+	 */
+	private function call_resource( $resource, $options ) {
+		$query = array(
+			'source_url' => '',
+			'data'       => wp_json_encode(
+				array(
+					'options' => $options,
+					'context' => new stdClass(),
+				)
+			),
+		);
+
+		$endpoint = 'https://www.pinterest.com/resource/' . rawurlencode( $resource ) . 'Resource/get/?' . http_build_query( $query );
+
+		$response = wp_remote_get(
+			$endpoint,
+			array(
+				'timeout' => 15,
+				'headers' => array(
+					'User-Agent'              => self::USER_AGENT,
+					'Accept'                  => 'application/json, text/javascript, */*, q=0.01',
+					'X-Requested-With'        => 'XMLHttpRequest',
+					'X-Pinterest-AppState'    => 'active',
+					'X-Pinterest-PWS-Handler' => 'www/[username].js',
+					'X-CSRFToken'             => self::CSRF_TOKEN,
+					'Cookie'                  => 'csrftoken=' . self::CSRF_TOKEN . ';',
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->log_diag( 'resource_call_failed:' . $resource, $endpoint, $response->get_error_message() );
+			return null;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+		$json = json_decode( $body, true );
+
+		if ( JSON_ERROR_NONE !== json_last_error() ) {
+			$this->log_diag( 'resource_call_bad_json:' . $resource, $endpoint, array( 'code' => $code, 'body' => $body ) );
+			return null;
+		}
+
+		return array(
+			'code' => $code,
+			'json' => $json,
+		);
+	}
 
 	/**
 	 * Resolve a public Pinterest URL into normalized media metadata.
@@ -351,6 +425,34 @@ class PinsDownload_Resolver {
 	 * ------------------------------------------------------------------ */
 
 	private function resolve_pin( $url, $route ) {
+		// Primary path: call Pinterest's own public Pin resource API
+		// directly, no page load needed first. field_set_key "detailed"
+		// is what returns the full images.orig / videos.video_list data
+		// this tool needs (confirmed via seregazhuk/php-pinterest-bot,
+		// which explicitly reads images.orig.url from this same
+		// field set).
+		$api = $this->call_resource(
+			'Pin',
+			array(
+				'id'            => $route['pin_id'],
+				'field_set_key' => 'detailed',
+			)
+		);
+
+		if ( $api ) {
+			if ( 404 === (int) $api['code'] ) {
+				return $this->err( 'deleted' );
+			}
+			$pin = $api['json']['resource_response']['data'] ?? null;
+			if ( is_array( $pin ) && ! empty( $pin ) ) {
+				return $this->normalize_pin( $pin );
+			}
+			$this->log_diag( 'pin_resource_empty_data', $url, array( 'code' => $api['code'], 'body' => wp_json_encode( $api['json'] ) ) );
+		}
+
+		// Resource API attempt failed (transport error, unexpected
+		// shape, or Pinterest requiring a real session in some region).
+		// Fall back to scraping the public page before giving up.
 		$page = $this->fetch_page( $url );
 		if ( is_wp_error( $page ) ) {
 			$this->log_diag( 'fetch_failed', $url, $page->get_error_message() );
@@ -710,6 +812,162 @@ class PinsDownload_Resolver {
 	 * ------------------------------------------------------------------ */
 
 	private function resolve_collection( $url, $kind, $route ) {
+		// Primary path for board/profile: call Pinterest's resource API
+		// directly (Board -> BoardFeed, or UserActivityPins), the same
+		// approach every maintained open-source Pinterest client uses.
+		// Ideas/answers pages don't have an independently-confirmed
+		// resource name, so they go straight to the page-scrape fallback.
+		if ( 'board' === $kind ) {
+			$result = $this->resolve_board_via_api( $route );
+			if ( $result ) {
+				return $result;
+			}
+		} elseif ( 'profile' === $kind ) {
+			$result = $this->resolve_profile_via_api( $route );
+			if ( $result ) {
+				return $result;
+			}
+		}
+
+		return $this->resolve_collection_via_page_scrape( $url, $kind, $route );
+	}
+
+	/**
+	 * Board resource lookup (gets board_id from {username, slug}) then
+	 * paginated BoardFeed. Options payload confirmed against
+	 * seregazhuk/php-pinterest-bot's Board/BoardFeed provider methods.
+	 * Returns null (not an error state) on any failure so the caller
+	 * falls back to page-scraping instead.
+	 */
+	private function resolve_board_via_api( $route ) {
+		if ( empty( $route['username'] ) || empty( $route['slug'] ) ) {
+			return null;
+		}
+
+		$board_api = $this->call_resource(
+			'Board',
+			array(
+				'username'      => $route['username'],
+				'slug'          => $route['slug'],
+				'field_set_key' => 'detailed',
+			)
+		);
+		$board = $board_api['json']['resource_response']['data'] ?? null;
+		if ( ! is_array( $board ) || empty( $board['id'] ) ) {
+			return null;
+		}
+
+		$limit = (int) apply_filters( 'pinsdownload_bulk_limit', 100 );
+		$items = $this->paginate_resource_items(
+			'BoardFeed',
+			array(
+				'board_id'      => $board['id'],
+				'field_set_key' => 'react_grid_pin',
+				'prepend'       => false,
+			),
+			$limit
+		);
+
+		if ( empty( $items ) ) {
+			return null;
+		}
+
+		return array(
+			'ok'    => true,
+			'type'  => 'board',
+			'title' => $board['name'] ?? $route['slug'],
+			'items' => $items,
+		);
+	}
+
+	/**
+	 * UserActivityPins resource, paginated. Resource name confirmed
+	 * against seregazhuk/php-pinterest-bot's user_activity_pins() method.
+	 * Returns null on any failure so the caller falls back to
+	 * page-scraping instead.
+	 */
+	private function resolve_profile_via_api( $route ) {
+		if ( empty( $route['username'] ) ) {
+			return null;
+		}
+
+		$limit = (int) apply_filters( 'pinsdownload_bulk_limit', 100 );
+		$items = $this->paginate_resource_items(
+			'UserActivityPins',
+			array(
+				'username'            => $route['username'],
+				'field_set_key'       => 'grid_item',
+				'is_own_profile_pins' => false,
+			),
+			$limit
+		);
+
+		if ( empty( $items ) ) {
+			return null;
+		}
+
+		return array(
+			'ok'    => true,
+			'type'  => 'profile',
+			'title' => $route['username'],
+			'items' => $items,
+		);
+	}
+
+	/**
+	 * Shared pagination loop for any resource that returns a flat list
+	 * of pin-shaped results plus an echoed bookmarks cursor for the next
+	 * page. Stops on an empty/"-end-" bookmark, hitting $limit, or after
+	 * 20 pages as a hard safety cap.
+	 */
+	private function paginate_resource_items( $resource, $base_options, $limit ) {
+		$items     = array();
+		$bookmarks = null;
+		$guard     = 0;
+
+		do {
+			$options = $base_options;
+			if ( $bookmarks ) {
+				$options['bookmarks'] = $bookmarks;
+			}
+
+			$api     = $this->call_resource( $resource, $options );
+			$results = $api['json']['resource_response']['data'] ?? null;
+			if ( ! is_array( $results ) ) {
+				break;
+			}
+
+			foreach ( $results as $pin ) {
+				if ( ! is_array( $pin ) || empty( $pin['id'] ) ) {
+					continue;
+				}
+				if ( isset( $pin['type'] ) && 'pin' !== $pin['type'] ) {
+					continue;
+				}
+				$normalized = $this->normalize_pin( $pin );
+				if ( ! empty( $normalized['ok'] ) && ! empty( $normalized['items'][0] ) ) {
+					$item              = $normalized['items'][0];
+					$item['pin_id']    = $pin['id'];
+					$item['pin_title'] = $normalized['title'];
+					$items[]           = $item;
+				}
+			}
+
+			$bookmarks = $api['json']['resource']['options']['bookmarks'] ?? null;
+			$guard++;
+		} while ( $bookmarks && ! empty( $bookmarks[0] ) && '-end-' !== $bookmarks[0] && count( $items ) < $limit && $guard < 20 );
+
+		return array_slice( $items, 0, $limit );
+	}
+
+	/**
+	 * Fallback path: scrape the public page's embedded __PWS_DATA__ for
+	 * an initial batch, then continue pagination the same way. Used when
+	 * the direct resource-API attempt above fails, and always used for
+	 * ideas/answers pages (no independently-confirmed resource name for
+	 * those yet).
+	 */
+	private function resolve_collection_via_page_scrape( $url, $kind, $route ) {
 		$page = $this->fetch_page( $url );
 		if ( is_wp_error( $page ) ) {
 			$this->log_diag( 'fetch_failed', $url, $page->get_error_message() );
@@ -835,12 +1093,15 @@ class PinsDownload_Resolver {
 	}
 
 	/**
-	 * Call Pinterest's own public resource endpoint for the next page of
-	 * a board/profile/ideas/answers feed. Uses only the csrf token +
-	 * cookies obtained from the public page load; no credentials.
+	 * Fallback-path pagination only (see resolve_collection_via_page_scrape).
+	 * The primary path for board/profile is paginate_resource_items(),
+	 * which doesn't need a page-load-derived csrf token or cookies at
+	 * all. This older method is kept for ideas/answers pages and as a
+	 * second attempt if the primary API call fails.
 	 *
-	 * Verify: exact "options" payload per resource type against a live
-	 * request before relying on this for production traffic.
+	 * Verify: exact "options" payload for ideas/answers resource names
+	 * against a live request — these aren't independently confirmed the
+	 * way board/profile now are.
 	 */
 	private function fetch_resource_page( $resource, $route, $bookmarks, $csrf, $cookies ) {
 		$options = array(
@@ -939,6 +1200,28 @@ class PinsDownload_Resolver {
 			return array( 'error' => 'short_link_fetch_failed', 'message' => $resolved->get_error_message() );
 		}
 
+		$route = $this->detect_route( $resolved );
+
+		// Check the primary path first — this is what resolve() actually
+		// tries before ever falling back to a page scrape, so it's the
+		// most useful thing to report here.
+		$api_report = array( 'attempted' => false );
+		if ( 'pin' === $route['type'] ) {
+			$api_report['attempted'] = true;
+			$api                     = $this->call_resource( 'Pin', array( 'id' => $route['pin_id'], 'field_set_key' => 'detailed' ) );
+			if ( null === $api ) {
+				$api_report['result'] = 'transport_or_json_error';
+			} else {
+				$api_report['http_status'] = $api['code'];
+				$pin_data                  = $api['json']['resource_response']['data'] ?? null;
+				$api_report['pin_data_found'] = is_array( $pin_data ) && ! empty( $pin_data );
+				$api_report['response_top_level_keys'] = is_array( $api['json'] ) ? array_keys( $api['json'] ) : array();
+				if ( ! $api_report['pin_data_found'] ) {
+					$api_report['raw_response_snippet'] = substr( wp_json_encode( $api['json'] ), 0, 1000 );
+				}
+			}
+		}
+
 		$page = $this->fetch_page( $resolved );
 		if ( is_wp_error( $page ) ) {
 			return array(
@@ -950,12 +1233,12 @@ class PinsDownload_Resolver {
 
 		$data           = $this->extract_pws_data( $page['body'] );
 		$og             = $this->extract_open_graph( $page['body'] );
-		$route          = $this->detect_route( $resolved );
 		$pin            = ( $data && 'pin' === $route['type'] ) ? $this->find_pin_in_pws_data( $data, $route['pin_id'] ) : null;
 
 		return array(
 			'resolved_url'         => $resolved,
 			'detected_route'       => $route,
+			'primary_api_attempt'  => $api_report,
 			'http_status'          => $page['code'],
 			'looks_like_login_wall' => $this->looks_like_login_wall( $page['body'] ),
 			'pws_data_script_found' => null !== $data,

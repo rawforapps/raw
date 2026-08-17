@@ -8,7 +8,9 @@ just make the tool itself work anywhere on that page.
 1. **Backend** — `pinsdownload-backend-wpcode.php`
    WPCode → Add Snippet → Add Your Custom Code → Code Type: **PHP
    Snippet** → paste the whole file → Insertion: **Auto Insert → Run
-   Everywhere** → Save & Activate.
+   Everywhere** → Save & Activate. If you installed an earlier version
+   of this snippet, **replace it entirely** — this version changes how
+   pins are fetched, not just the error messages.
 
 2. **Widget** — `pinsdownload-widget.html`
    On the page you're building in Kadence, add a **Custom HTML** block
@@ -19,6 +21,21 @@ just make the tool itself work anywhere on that page.
 The widget calls relative paths (`/wp-json/...`), so it works on
 whatever domain you embed it on with zero editing, as long as the
 backend snippet is active on that same site.
+
+## First thing to do after installing
+
+Visit this in a browser tab while logged into wp-admin (swap in the
+real domain once it's live):
+
+```
+yoursite.com/wp-json/pinsdownload/v1/debug?url=https://www.pinterest.com/pin/1103804189961515698/
+```
+
+Check the `primary_api_attempt` field in the response. If
+`pin_data_found` is `true`, the fix works and the tool will resolve
+that pin. If it's `false`, the `raw_response_snippet` field shows
+exactly what Pinterest sent back instead — send that to me and it's a
+fast, targeted fix rather than another guess.
 
 ## What's included vs. left out (on purpose, per your instruction)
 
@@ -33,52 +50,60 @@ folded into the widget too.
 
 ## The extraction bug — what changed and why
 
-**Before:** any failure to extract pin data (missing data blob,
-unparsable JSON, structure mismatch — three different problems) fell
-through to one line that returned the "deleted" error, regardless of
-cause. A real 404 was already handled separately above it, so in
-practice "deleted" was firing for extraction failures, not actual
-deletions.
+### Round 1 (the honesty fix)
 
-**After:**
-- Distinct error codes: `deleted` (real 404 only), `private`,
-  `blocked_or_changed` (page fetched fine, data couldn't be read —
-  the honest "something changed or we're being blocked" state),
-  `fetch_failed` (couldn't reach Pinterest at all), `unsupported`.
-  Each has its own accurate user-facing message now.
-- A second extraction attempt via Open Graph meta tags before giving
-  up. Pinterest renders `og:image` / `og:video` tags for link-preview
-  and SEO purposes; those tend to be more stable than the internal
-  data blob's exact field names, so this survives some structure
-  changes that would break the primary path. Lower confidence (one
-  resolution only, labeled "limited info available"), but real data
-  instead of a false "deleted."
-- `WP_DEBUG`-gated diagnostic logging (`error_log`) on every failure
-  path: HTTP status, whether the data blob was found, a body snippet.
-- A live diagnostic endpoint, admin-only:
-  `yoursite.com/wp-json/pinsdownload/v1/debug?url=<pinterest-url>`
-  (visit it in a browser tab while logged into wp-admin). Returns raw
-  JSON: HTTP status, whether Pinterest's data blob was present, whether
-  a CAPTCHA/bot-challenge page was served instead, and a body snippet.
-  **Run this on the test pin URL first** if resolve still fails after
-  install — it will tell you exactly which of the above is happening,
-  which this sandbox could not determine (see below).
+The original code's only path to get pin data was scraping the pin
+page's HTML for an embedded `__PWS_DATA__` script tag. Any failure in
+that — the tag missing, the JSON not parsing, the structure not
+matching — fell through to one line that returned a "deleted" error,
+regardless of cause. A real 404 was already handled separately above
+it, so in practice "deleted" was firing for extraction failures, not
+actual deletions. That got split into distinct, accurate error codes
+(`deleted`, `private`, `blocked_or_changed`, `fetch_failed`,
+`unsupported`), each with its own message, plus an Open Graph
+meta-tag fallback and diagnostic logging. Good for honesty, but it
+didn't address why extraction was failing in the first place.
+
+### Round 2 (the actual root-cause fix)
+
+Cross-checked the extraction *method itself* against three
+independent, real, actively-maintained open-source Pinterest clients:
+[yt-dlp's pinterest.py](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/pinterest.py),
+[gallery-dl's pinterest.py](https://github.com/mikf/gallery-dl/blob/master/gallery_dl/extractor/pinterest.py),
+and [seregazhuk/php-pinterest-bot](https://github.com/seregazhuk/php-pinterest-bot).
+All three agree: **none of them scrape the HTML page for embedded
+JSON.** They call Pinterest's own public resource API directly:
+
+```
+GET https://www.pinterest.com/resource/PinResource/get/
+    ?data={"options":{"id":"<pin_id>","field_set_key":"detailed"}}
+```
+
+No page load first, no real session — anonymous reads work with a
+placeholder CSRF token (`'1234'`, the exact value the PHP bot
+hardcodes for its logged-out state; gallery-dl just generates a random
+one, same effect). Boards go through a `Board` lookup for the board ID
+then a paginated `BoardFeed`; profiles use `UserActivityPins` — both
+resource names and their options payloads confirmed against the same
+three sources.
+
+This is very likely the actual reason nothing ever worked: the tool
+was scraping for data using a technique none of the real, currently-
+functioning Pinterest tools actually rely on. The rebuilt resolver now
+calls the resource API directly as the primary path, with the old
+HTML-scrape method kept as an automatic fallback if the API call ever
+fails.
 
 ## Honest limitation — please read before assuming it's fixed
 
-This sandbox's network cannot reach `pinterest.com` in any form
-(confirmed again for this task — `pinterest.com`, `i.pinimg.com`,
-`api.pinterest.com`, `widgets.pinterest.com` all return a 403 at the
-network policy level). That means steps 3, 4, and 5 of your debugging
-plan — live fetch test, raw response capture, live verification —
-could not be executed from here, and the test pin URL has not actually
-been confirmed working.
+This sandbox's network still cannot reach `pinterest.com` in any form
+(checked again for this round too — 403 at the network policy level).
+That means this still has not been confirmed against a live response
+— what changed is the *strength of the evidence* behind the fix: it's
+no longer a best-guess reading of Pinterest's page structure, it's the
+same method three independent, real, currently-working tools use,
+cross-checked against each other for the exact request shape.
 
-What was done instead: the pipeline was traced end to end (confirmed
-real, not a stub or mock — `fetch_page()` is a genuine `wp_remote_get`
-call), the exact catch-all bug was found and fixed, error states were
-split into accurate categories, a second extraction path was added,
-and diagnostics were wired in so you get a real answer in one request
-once this is live. Please run the `/debug` URL above against the test
-pin as the actual first verification step — I want to know what it
-says as much as you do.
+The `/debug` endpoint above is the actual verification step. Please
+run it against the test pin and tell me what `primary_api_attempt`
+says — that closes the loop properly, one way or the other.
