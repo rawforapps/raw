@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <a class="pd-skip-link" href="#pd-main"><?php esc_html_e( 'Skip to content', 'pinsdownload' ); ?></a>
 
-<header class="pd-site-header">
-	<div class="pd-container pd-site-header__inner">
+<header class="pd-site-header" id="pd-site-header">
+	<div class="pd-site-header__inner">
 		<a class="pd-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 			<?php if ( has_custom_logo() ) : ?>
 				<?php the_custom_logo(); ?>
@@ -39,6 +39,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			);
 			?>
 		</nav>
+
+		<a class="pd-btn pd-btn--primary pd-header-cta" href="#pd-download-tool">
+			<?php esc_html_e( 'Download', 'pinsdownload' ); ?>
+		</a>
 	</div>
 </header>
 

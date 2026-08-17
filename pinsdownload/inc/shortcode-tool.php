@@ -41,6 +41,7 @@ function pinsdownload_tool_shortcode( $atts ) {
 				placeholder="<?php esc_attr_e( 'Paste your Pinterest link here', 'pinsdownload' ); ?>"
 			>
 			<button type="submit" class="pd-tool__submit">
+				<?php pinsdownload_icon_e( 'download', 'pd-icon--btn' ); ?>
 				<?php esc_html_e( 'Download', 'pinsdownload' ); ?>
 			</button>
 		</form>
@@ -63,6 +64,7 @@ function pinsdownload_tool_shortcode( $atts ) {
 				<label class="pd-result__quality-label" for="pd-quality-select"><?php esc_html_e( 'Choose quality', 'pinsdownload' ); ?></label>
 				<select class="pd-result__quality"></select>
 				<button type="button" class="pd-btn pd-btn--primary pd-result__download">
+					<?php pinsdownload_icon_e( 'download' ); ?>
 					<?php esc_html_e( 'Download', 'pinsdownload' ); ?>
 				</button>
 				<button type="button" class="pd-btn pd-btn--ghost pd-tool__save-moodboard pd-result__save-moodboard">

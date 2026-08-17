@@ -22,16 +22,14 @@ $pinsdownload_landing_pages = get_posts(
 
 if ( $pinsdownload_landing_pages ) :
 	?>
-	<section class="pd-section pd-container">
-		<h2><?php esc_html_e( 'Other Tools', 'pinsdownload' ); ?></h2>
-		<p>
-			<?php
-			$pinsdownload_links = array();
-			foreach ( $pinsdownload_landing_pages as $pinsdownload_lp ) {
-				$pinsdownload_links[] = '<a href="' . esc_url( get_permalink( $pinsdownload_lp ) ) . '">' . esc_html( get_the_title( $pinsdownload_lp ) ) . '</a>';
-			}
-			echo wp_kses_post( implode( ' · ', $pinsdownload_links ) );
-			?>
-		</p>
+	<section class="pd-band pd-band--pink">
+		<div class="pd-container pd-section pd-reveal">
+			<h2><?php esc_html_e( 'Other Tools', 'pinsdownload' ); ?></h2>
+			<div class="pd-link-row">
+				<?php foreach ( $pinsdownload_landing_pages as $pinsdownload_lp ) : ?>
+					<a href="<?php echo esc_url( get_permalink( $pinsdownload_lp ) ); ?>"><?php echo esc_html( get_the_title( $pinsdownload_lp ) ); ?></a>
+				<?php endforeach; ?>
+			</div>
+		</div>
 	</section>
 <?php endif; ?>

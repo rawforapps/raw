@@ -39,6 +39,10 @@ function pinsdownload_assets() {
 
 	wp_enqueue_script( 'pinsdownload-sw-register', PINSDOWNLOAD_URI . '/assets/js/sw-register.js', array(), PINSDOWNLOAD_VERSION, true );
 
+	// Site-wide visual/interaction layer: scroll-reveal, FAQ accordion,
+	// sticky header. Purely presentational, no content or tool logic.
+	wp_enqueue_script( 'pinsdownload-ui', PINSDOWNLOAD_URI . '/assets/js/ui.js', array(), PINSDOWNLOAD_VERSION, true );
+
 	// JSZip is only needed on pages that render the tool (bulk ZIP download).
 	if ( pinsdownload_page_has_tool() ) {
 		wp_enqueue_script( 'jszip', PINSDOWNLOAD_URI . '/assets/js/vendor/jszip.min.js', array(), '3.10.1', true );
@@ -103,6 +107,18 @@ function pinsdownload_pwa_head() {
 add_action( 'wp_head', 'pinsdownload_pwa_head' );
 
 /**
+ * Preload the two font files used above the fold (heading + body) so
+ * the hero doesn't flash unstyled text while the rest of style.css's
+ * @font-face rules resolve. Kept to two files on purpose, page weight
+ * matters more here than completeness.
+ */
+function pinsdownload_font_preload() {
+	echo '<link rel="preload" href="' . esc_url( PINSDOWNLOAD_URI . '/assets/fonts/baloo2-700.woff2' ) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+	echo '<link rel="preload" href="' . esc_url( PINSDOWNLOAD_URI . '/assets/fonts/inter-400.woff2' ) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+}
+add_action( 'wp_head', 'pinsdownload_font_preload', 1 );
+
+/**
  * Includes.
  */
 require_once PINSDOWNLOAD_DIR . '/inc/class-pinsdownload-resolver.php';
@@ -114,3 +130,4 @@ require_once PINSDOWNLOAD_DIR . '/inc/shortcode-moodboard.php';
 require_once PINSDOWNLOAD_DIR . '/inc/metaboxes.php';
 require_once PINSDOWNLOAD_DIR . '/inc/schema.php';
 require_once PINSDOWNLOAD_DIR . '/inc/seo.php';
+require_once PINSDOWNLOAD_DIR . '/inc/icons.php';

@@ -96,6 +96,7 @@
 		this.type = root.dataset.type || 'general';
 		this.form = root.querySelector( '.pd-tool__form' );
 		this.input = root.querySelector( '.pd-tool__input' );
+		this.submit = root.querySelector( '.pd-tool__submit' );
 		this.progress = root.querySelector( '.pd-tool__progress' );
 		this.progressBar = root.querySelector( '.pd-tool__progress-bar' );
 		this.progressLabel = root.querySelector( '.pd-tool__progress-label' );
@@ -142,6 +143,11 @@
 		this.progressBar.style.width = '0%';
 		this.progressLabel.textContent = '0%';
 
+		if ( this.submit ) {
+			this.submit.classList.add( 'is-loading' );
+			this.submit.disabled = true;
+		}
+
 		this.progressTimer = setInterval( function () {
 			pct = Math.min( pct + Math.random() * 18, 90 );
 			self.progressBar.style.width = pct + '%';
@@ -153,6 +159,12 @@
 		clearInterval( this.progressTimer );
 		this.progressBar.style.width = '100%';
 		this.progressLabel.textContent = '100%';
+
+		if ( this.submit ) {
+			this.submit.classList.remove( 'is-loading' );
+			this.submit.disabled = false;
+		}
+
 		var self = this;
 		setTimeout( function () {
 			self.progress.hidden = true;

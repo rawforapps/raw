@@ -13,20 +13,22 @@ get_header();
 pinsdownload_breadcrumb();
 ?>
 
-<div class="pd-container pd-section">
-	<?php
-	while ( have_posts() ) :
-		the_post();
-		?>
-		<article <?php post_class( 'pd-article' ); ?>>
-			<h1 class="pd-article__title"><?php the_title(); ?></h1>
-			<div class="pd-article__content">
-				<?php the_content(); ?>
-			</div>
-		</article>
+<div class="pd-band pd-band--plain">
+	<div class="pd-container pd-section">
 		<?php
-	endwhile;
-	?>
+		while ( have_posts() ) :
+			the_post();
+			?>
+			<article <?php post_class( 'pd-article pd-reveal' ); ?>>
+				<h1 class="pd-article__title"><?php the_title(); ?></h1>
+				<div class="pd-article__content">
+					<?php the_content(); ?>
+				</div>
+			</article>
+			<?php
+		endwhile;
+		?>
+	</div>
 </div>
 
 <?php

@@ -29,13 +29,15 @@ if ( ! $format_strip ) {
 
 <?php pinsdownload_breadcrumb(); ?>
 
-<section class="pd-hero pd-container">
-	<h1><?php the_title(); ?></h1>
-	<?php if ( $intro ) : ?>
-		<p class="pd-hero__subtitle"><?php echo esc_html( $intro ); ?></p>
-	<?php endif; ?>
+<section class="pd-hero-band" id="pd-download-tool">
+	<div class="pd-hero pd-container">
+		<h1><?php the_title(); ?></h1>
+		<?php if ( $intro ) : ?>
+			<p class="pd-hero__subtitle"><?php echo esc_html( $intro ); ?></p>
+		<?php endif; ?>
 
-	<?php echo do_shortcode( '[pinsdownload_tool type="' . esc_attr( $type ) . '"]' ); ?>
+		<?php echo do_shortcode( '[pinsdownload_tool type="' . esc_attr( $type ) . '"]' ); ?>
+	</div>
 </section>
 
 <div class="pd-strip">
@@ -45,29 +47,43 @@ if ( ! $format_strip ) {
 <?php do_action( 'pinsdownload_ad_slot', 'landing_after_strip' ); ?>
 
 <?php if ( get_the_content() ) : ?>
-	<section class="pd-section pd-container pd-article__content">
-		<?php the_content(); ?>
+	<section class="pd-band pd-band--plain">
+		<div class="pd-container pd-section pd-reveal pd-card pd-article__content">
+			<?php the_content(); ?>
+		</div>
 	</section>
 <?php endif; ?>
 
 <?php get_template_part( 'template-parts/works-doesnt' ); ?>
 
 <?php if ( $faq_pairs ) : ?>
-	<section class="pd-section pd-container pd-faq">
-		<h2><?php esc_html_e( 'Frequently Asked Questions', 'pinsdownload' ); ?></h2>
-		<?php foreach ( $faq_pairs as $pair ) : ?>
-			<details>
-				<summary><?php echo esc_html( $pair[0] ); ?></summary>
-				<p><?php echo esc_html( $pair[1] ); ?></p>
-			</details>
-		<?php endforeach; ?>
+	<section class="pd-band pd-band--pink">
+		<div class="pd-container pd-section pd-reveal">
+			<h2><?php esc_html_e( 'Frequently Asked Questions', 'pinsdownload' ); ?></h2>
+			<div class="pd-faq">
+				<?php foreach ( $faq_pairs as $pair ) : ?>
+					<div class="pd-faq-item">
+						<button type="button" class="pd-faq-q">
+							<span><?php echo esc_html( $pair[0] ); ?></span>
+							<?php pinsdownload_icon_e( 'chevron' ); ?>
+						</button>
+						<div class="pd-faq-a"><p><?php echo esc_html( $pair[1] ); ?></p></div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
 	</section>
 <?php else : ?>
-	<section class="pd-section pd-container">
-		<h2><?php esc_html_e( 'Is This Safe to Use?', 'pinsdownload' ); ?></h2>
-		<p>
-			<?php esc_html_e( 'Yes. We never ask for your Pinterest username or password. You paste a public link, we fetch the file, and nothing you download is stored on our servers afterward.', 'pinsdownload' ); ?>
-		</p>
+	<section class="pd-band pd-band--pink">
+		<div class="pd-container pd-section">
+			<div class="pd-card pd-reveal">
+				<div class="pd-eyebrow-icon"><?php pinsdownload_icon_e( 'shield' ); ?></div>
+				<h2><?php esc_html_e( 'Is This Safe to Use?', 'pinsdownload' ); ?></h2>
+				<p>
+					<?php esc_html_e( 'Yes. We never ask for your Pinterest username or password. You paste a public link, we fetch the file, and nothing you download is stored on our servers afterward.', 'pinsdownload' ); ?>
+				</p>
+			</div>
+		</div>
 	</section>
 <?php endif; ?>
 

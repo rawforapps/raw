@@ -6,6 +6,15 @@ Blueprint, and finalized homepage copy. No plugin required — the tool
 engine, REST API, download proxy, PWA, and mood board are all bundled
 in this theme.
 
+**Design system**: Pinterest-red/pink palette, card-based sections on
+alternating bands, self-hosted Baloo 2 (headings) + Inter (body) fonts
+(`assets/fonts`, both SIL Open Font License, license files included,
+no external font CDN), an inline SVG icon set (`inc/icons.php`, no icon
+font dependency), scroll-reveal + animated FAQ accordion + sticky
+header (`assets/js/ui.js`). This was a markup/CSS/JS-only pass — every
+piece of copy on every page is byte-for-byte the same as the source
+content docs; only how it's presented changed.
+
 ## Install
 
 1. Zip the `pinsdownload` folder as-is, so the archive's top level is
