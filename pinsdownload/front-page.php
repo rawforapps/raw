@@ -17,7 +17,7 @@ get_header();
 <section class="pd-hero pd-container">
 	<h1><?php esc_html_e( 'Pinterest Video Downloader', 'pinsdownload' ); ?></h1>
 	<p class="pd-hero__subtitle">
-		<?php esc_html_e( 'Download Pinterest videos, images, GIFs, and stories in one click. Free, fast, and no account needed.', 'pinsdownload' ); ?>
+		<?php esc_html_e( 'Download Pinterest videos, images, GIFs, and stories in one click. Free, fast, and no account needed. Works as a full Pinterest video downloader online, no software to install.', 'pinsdownload' ); ?>
 	</p>
 	<?php echo do_shortcode( '[pinsdownload_tool type="general"]' ); ?>
 </section>
@@ -189,15 +189,7 @@ get_header();
 
 <!-- 16. Trust Badges (DUMMY until domain has scan history) -->
 <!-- DUMMY: shows "no data yet" until the live domain has been crawled for a few weeks. Normal, don't remove. -->
-<section class="pd-section pd-container pd-bg-soft pd-trust-badges">
-	<h2><?php esc_html_e( 'Trust Badges', 'pinsdownload' ); ?></h2>
-	<p>
-		<?php esc_html_e( 'Check our current reputation:', 'pinsdownload' ); ?>
-		<a href="https://transparencyreport.google.com/safe-browsing/search?url=pinsdownload.org" rel="nofollow noopener" target="_blank">Google Safe Browsing</a>
-		<a href="https://safeweb.norton.com/report?url=pinsdownload.org" rel="nofollow noopener" target="_blank">Norton Safe Web</a>
-		<a href="https://sitecheck.sucuri.net/results/pinsdownload.org" rel="nofollow noopener" target="_blank">Sucuri Scanner</a>
-	</p>
-</section>
+<?php get_template_part( 'template-parts/trust-badges' ); ?>
 
 <!-- 17. Is It Legal -->
 <section class="pd-section pd-container">
@@ -291,34 +283,11 @@ $faq = array(
 	<p><strong><?php esc_html_e( 'Can I download Pinterest GIFs?', 'pinsdownload' ); ?></strong> <?php esc_html_e( "Yes, paste the GIF's link the same way as a video.", 'pinsdownload' ); ?></p>
 	<p><strong><?php esc_html_e( 'Where do my downloads go?', 'pinsdownload' ); ?></strong> <?php esc_html_e( "Your device's default Downloads folder, unless you choose another location.", 'pinsdownload' ); ?></p>
 	<p><strong><?php esc_html_e( 'Does this cost anything?', 'pinsdownload' ); ?></strong> <?php esc_html_e( "No, it's free with no limits on single downloads.", 'pinsdownload' ); ?></p>
+	<p><strong><?php esc_html_e( 'Is this the same as a "pin saver"?', 'pinsdownload' ); ?></strong> <?php esc_html_e( 'Yes. PinsDownload works as a Pinterest saver too, paste any pin link and save it the same way.', 'pinsdownload' ); ?></p>
 </section>
 
 <!-- 23. Other Tools (hidden until landing pages exist) -->
-<?php
-$landing_pages = get_posts(
-	array(
-		'post_type'      => 'page',
-		'posts_per_page' => 20,
-		'post_status'    => 'publish',
-		'meta_key'       => '_wp_page_template',
-		'meta_value'     => 'page-templates/template-tool-landing.php',
-	)
-);
-if ( $landing_pages ) :
-	?>
-	<section class="pd-section pd-container">
-		<h2><?php esc_html_e( 'Other Tools', 'pinsdownload' ); ?></h2>
-		<p>
-			<?php
-			$links = array();
-			foreach ( $landing_pages as $lp ) {
-				$links[] = '<a href="' . esc_url( get_permalink( $lp ) ) . '">' . esc_html( get_the_title( $lp ) ) . '</a>';
-			}
-			echo wp_kses_post( implode( ' · ', $links ) );
-			?>
-		</p>
-	</section>
-<?php endif; ?>
+<?php get_template_part( 'template-parts/other-tools' ); ?>
 
 <?php
 pinsdownload_output_softwareapplication_schema();

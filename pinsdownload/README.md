@@ -21,6 +21,35 @@ in this theme.
    (near-universal on real hosting; if missing, downloads fall back to
    a plain redirect instead of a forced Save-As).
 
+## Importing the Phase 1 content (GIF/Image pages, legal pages)
+
+`content-import/pinsdownload-phase1-content.xml` (repo root, next to this
+theme folder) is a standard WordPress export file (WXR) containing:
+
+- **Pinterest GIF Downloader** and **Pinterest Image Downloader** —
+  already set up as Tool Landing Pages with their own title tag, meta
+  description, format strip, intro paragraph, and schema-ready FAQ.
+  Nothing to configure, they publish exactly as written.
+- **About Us, Contact Us, Privacy Policy, Terms of Service, DMCA
+  Policy** — standard pages with their own title tags.
+
+To import: after activating the theme, go to Tools → Import →
+WordPress (install the "WordPress" importer plugin if prompted), then
+upload the XML file. Assign the imported content to an existing user
+(or create one) when asked. All 7 pages appear immediately, and the
+homepage's "Other Tools" section will start linking to the two new
+downloader pages automatically (no menu setup required for that part,
+though you should still add them to your Primary/Footer menu for
+navigation).
+
+**Before publishing DMCA Policy**: it still has bracketed placeholders
+(`[Name / Company]`, `[dmca@pinsdownload.org]`, `[physical address]`).
+Register a designated agent at
+[dmca.copyright.gov](https://dmca.copyright.gov) and fill in those
+exact details, otherwise the page doesn't give you the legal
+protection it's meant to (this was flagged in the source content doc
+too, it's not something code can fill in for you).
+
 ## Adding a new content-type landing page
 
 This is the reusable piece: one engine, many thin pages, per the Tool
@@ -31,13 +60,23 @@ Blueprint's "one engine, not eleven tools" architecture.
    Page**.
 3. A **PinsDownload Landing Page Settings** box appears below the
    editor. Pick the content type (video, image, GIF, board, profile,
-   etc.) and write one short intro paragraph.
-4. Set the page title (this becomes the H1) and, optionally, add extra
+   etc.), write one short intro paragraph, and optionally set a custom
+   format strip (e.g. "Native GIF format · Full animation kept...")
+   and a page-specific FAQ (one `Q:` line, one or more `A:` lines,
+   blank line between pairs — this becomes both the visible FAQ
+   accordion and FAQPage schema automatically).
+4. A separate **SEO Title & Description** box lets you set the exact
+   `<title>` tag and meta description for this page, matching each
+   content doc's "Technical foundation" section.
+5. Set the page title (this becomes the H1) and, optionally, add extra
    content in the main editor (it renders below the format strip).
-5. Publish. The page automatically gets the tool box, the shared
-   "What Works / What Doesn't" table, and breadcrumb + schema markup.
-   It also starts showing up in the homepage's "Other Tools" section
-   and in any menu you add it to — nothing else to wire up.
+6. Publish. The page automatically gets the tool box, the shared
+   "What Works / What Doesn't" table, trust badges, an "Other Tools"
+   list of every other landing page, and breadcrumb + SoftwareApplication
+   + HowTo + BreadcrumbList schema (plus FAQPage schema if you filled
+   in the FAQ field). It also starts showing up in the homepage's
+   "Other Tools" section and in any menu you add it to — nothing else
+   to wire up.
 
 Ordinary content pages (Privacy Policy, DMCA, "Is It Legal," About)
 just use the default page template — Pages → Add New, leave the
@@ -123,3 +162,10 @@ below the tool box, never on top of it.
 - `inc/pwa-root-files.php` — serves `/sw.js` and `/manifest.json` from
   the site root (from inside the theme folder) so the service worker
   can control the whole site, not just the theme directory.
+- `inc/seo.php` — outputs the exact per-page `<title>` and meta
+  description from the SEO meta box (homepage falls back to the fixed
+  blueprint copy).
+- `inc/metaboxes.php` — the two wp-admin meta boxes described above.
+- `template-parts/trust-badges.php`, `template-parts/other-tools.php`,
+  `template-parts/works-doesnt.php` — shared blocks reused on the
+  homepage and every Tool Landing Page.

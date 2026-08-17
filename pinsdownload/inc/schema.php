@@ -110,3 +110,44 @@ function pinsdownload_output_faqpage_schema( $qa_pairs ) {
 function pinsdownload_print_schema( $data ) {
 	echo '<script type="application/ld+json">' . wp_json_encode( $data ) . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
+
+/**
+ * Parses the meta box's "Q: ... / A: ..." textarea format into
+ * [ [question, answer], ... ] pairs, ready for both display and
+ * pinsdownload_output_faqpage_schema().
+ */
+function pinsdownload_parse_faq_raw( $raw ) {
+	$pairs = array();
+	if ( ! $raw ) {
+		return $pairs;
+	}
+
+	$lines      = preg_split( '/\r\n|\r|\n/', trim( $raw ) );
+	$question   = null;
+	$answer_bits = array();
+
+	$flush = function () use ( &$question, &$answer_bits, &$pairs ) {
+		if ( null !== $question ) {
+			$pairs[] = array( $question, trim( implode( ' ', $answer_bits ) ) );
+		}
+	};
+
+	foreach ( $lines as $line ) {
+		$line = trim( $line );
+		if ( '' === $line ) {
+			continue;
+		}
+		if ( 0 === stripos( $line, 'Q:' ) ) {
+			$flush();
+			$question    = trim( substr( $line, 2 ) );
+			$answer_bits = array();
+		} elseif ( 0 === stripos( $line, 'A:' ) ) {
+			$answer_bits[] = trim( substr( $line, 2 ) );
+		} elseif ( null !== $question ) {
+			$answer_bits[] = $line;
+		}
+	}
+	$flush();
+
+	return $pairs;
+}

@@ -113,3 +113,4 @@ require_once PINSDOWNLOAD_DIR . '/inc/shortcode-tool.php';
 require_once PINSDOWNLOAD_DIR . '/inc/shortcode-moodboard.php';
 require_once PINSDOWNLOAD_DIR . '/inc/metaboxes.php';
 require_once PINSDOWNLOAD_DIR . '/inc/schema.php';
+require_once PINSDOWNLOAD_DIR . '/inc/seo.php';
