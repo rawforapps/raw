@@ -8,8 +8,10 @@ in this theme.
 
 ## Install
 
-1. Zip the `pinsdownload` folder (the zip's top level must contain
-   `style.css`, `functions.php`, etc. directly — not a nested folder).
+1. Zip the `pinsdownload` folder as-is, so the archive's top level is
+   a single `pinsdownload/` directory containing `style.css`,
+   `functions.php`, etc. (WordPress's uploader expects exactly this —
+   one wrapper folder, not the files loose at the zip root.)
 2. WordPress admin → Appearance → Themes → Add New → Upload Theme.
 3. Activate. The homepage works immediately at `/`, front-page.php is
    used automatically regardless of the Settings → Reading choice.
