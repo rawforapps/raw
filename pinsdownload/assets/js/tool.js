@@ -14,6 +14,13 @@
 	var cfg = window.PinsDownloadConfig || {};
 	var deferredInstallPrompt = null;
 
+	// Small set of inline SVGs for JS-driven state changes (never a text
+	// glyph/emoji — those render inconsistently across platforms and
+	// can't be styled with the rest of the icon system's stroke tokens).
+	var ICON_SVG = {
+		check: '<svg class="pd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
+	};
+
 	window.addEventListener( 'beforeinstallprompt', function ( e ) {
 		e.preventDefault();
 		deferredInstallPrompt = e;
@@ -300,7 +307,7 @@
 			if ( saveBtn && window.PinsDownloadMoodboard ) {
 				saveBtn.addEventListener( 'click', function () {
 					window.PinsDownloadMoodboard.add( { image: item.thumbnail, title: item.pin_title || data.title } );
-					saveBtn.textContent = '✓';
+					saveBtn.innerHTML = ICON_SVG.check;
 					saveBtn.disabled = true;
 				} );
 			}

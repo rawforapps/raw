@@ -122,6 +122,39 @@
 
 	enrichContentBlocks();
 
+	/* Staggered child entrance ------------------------------------------
+	 * Applied via inline styles only (never a CSS class) so it can never
+	 * conflict with existing hover/transition rules on .pd-grid-card,
+	 * .pd-features li, etc. regardless of stylesheet source order. */
+	var reducedMotion = window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+
+	function staggerChildren( section ) {
+		if ( reducedMotion ) {
+			return;
+		}
+		var items = section.querySelectorAll( '.pd-grid-card, .pd-features > li, .pd-tags > li, .pd-testimonial' );
+		items.forEach( function ( el, i ) {
+			var delay = Math.min( i, 10 ) * 40;
+			el.style.opacity = '0';
+			el.style.transform = 'translateY(14px)';
+			el.style.transition = 'opacity 0.4s ease ' + delay + 'ms, transform 0.4s ease ' + delay + 'ms';
+			// Next frame, so the browser registers the "from" state above
+			// before we set the "to" state (otherwise no transition plays).
+			requestAnimationFrame( function () {
+				requestAnimationFrame( function () {
+					el.style.opacity = '';
+					el.style.transform = '';
+				} );
+			} );
+			// Clear the inline transition once the reveal animation is
+			// done, so it never lingers and overrides the element's own
+			// hover-transition rules (e.g. .pd-grid-card:hover) later.
+			setTimeout( function () {
+				el.style.transition = '';
+			}, delay + 450 );
+		} );
+	}
+
 	/* Scroll-reveal --------------------------------------------------- */
 	var revealTargets = document.querySelectorAll( '.pd-reveal' );
 	if ( 'IntersectionObserver' in window && revealTargets.length ) {
@@ -130,6 +163,7 @@
 				entries.forEach( function ( entry ) {
 					if ( entry.isIntersecting ) {
 						entry.target.classList.add( 'is-visible' );
+						staggerChildren( entry.target );
 						observer.unobserve( entry.target );
 					}
 				} );

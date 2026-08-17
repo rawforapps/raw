@@ -90,6 +90,25 @@ img {
 a {
 	color: var(--pd-red);
 }
+button,
+a,
+.pd-multi-item,
+summary {
+	cursor: pointer;
+	touch-action: manipulation;
+}
+button:disabled {
+	cursor: default;
+}
+
+/* Brand-colored focus ring for keyboard navigation, replacing (not
+   removing) the browser default so it stays visible against every
+   band/card background used throughout the theme. */
+:focus-visible {
+	outline: 3px solid var(--pd-red);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
 h1, h2, h3 {
 	font-family: var(--pd-font-heading);
 	font-weight: 700;
@@ -255,11 +274,25 @@ p {
 	opacity: 1;
 	transform: translateY(0);
 }
+
 @media (prefers-reduced-motion: reduce) {
 	.pd-reveal {
 		opacity: 1;
 		transform: none;
 		transition: none;
+	}
+	* {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
+	}
+	.pd-tool__submit:hover,
+	.pd-btn--primary:hover,
+	.pd-multi-item:hover,
+	.pd-grid-card:hover,
+	.pd-features li:hover {
+		transform: none;
 	}
 }
 
@@ -552,6 +585,22 @@ p {
 	line-height: 1;
 	color: var(--pd-red);
 	box-shadow: var(--pd-shadow);
+	touch-action: manipulation;
+}
+.pd-multi-item__save-moodboard .pd-icon {
+	width: 14px;
+	height: 14px;
+}
+/* Visual circle stays compact for the thumbnail grid; the actual tap
+   target still meets the 44x44 minimum via this invisible expansion. */
+.pd-multi-item__save-moodboard::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 44px;
+	height: 44px;
+	transform: translate(-50%, -50%);
 }
 .pd-multi-actions {
 	display: flex;
@@ -950,7 +999,24 @@ p {
 	border-radius: 50%;
 	width: 24px;
 	height: 24px;
+	touch-action: manipulation;
 	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.pd-moodboard-item__remove .pd-icon {
+	width: 14px;
+	height: 14px;
+}
+.pd-moodboard-item__remove::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 44px;
+	height: 44px;
+	transform: translate(-50%, -50%);
 }
 .pd-moodboard-empty {
 	color: var(--pd-ink-soft);

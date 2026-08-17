@@ -81,7 +81,9 @@ function pinsdownload_tool_shortcode( $atts ) {
 				<img class="pd-multi-item__thumb" alt="" loading="lazy">
 				<span class="pd-multi-item__meta"></span>
 			</label>
-			<button type="button" class="pd-multi-item__save-moodboard" aria-label="<?php esc_attr_e( 'Save to Moodboard', 'pinsdownload' ); ?>" title="<?php esc_attr_e( 'Save to Moodboard', 'pinsdownload' ); ?>">♡</button>
+			<button type="button" class="pd-multi-item__save-moodboard" aria-label="<?php esc_attr_e( 'Save to Moodboard', 'pinsdownload' ); ?>" title="<?php esc_attr_e( 'Save to Moodboard', 'pinsdownload' ); ?>">
+				<?php pinsdownload_icon_e( 'heart' ); ?>
+			</button>
 		</div>
 	</template>
 
