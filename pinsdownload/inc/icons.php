@@ -57,12 +57,27 @@ function pinsdownload_icon_e( $name, $class = '' ) {
 }
 
 /**
- * A visibly-marked empty image slot, sized for its context (square,
- * wide/16:9, tall/portrait). This is a layout placeholder, not content:
- * swap the markup for a real <img> once you have a screenshot/photo for
- * that spot. Ships empty on purpose rather than with a stock photo.
+ * An image slot sized for its context (square, wide/16:9, tall/portrait,
+ * avatar). When $mod_key is given and an image has been picked for it in
+ * Appearance -> Customize -> PinsDownload Images, that real image renders
+ * instead. With no $mod_key, or nothing picked yet, this falls back to a
+ * visibly-marked empty placeholder — a layout placeholder, not content,
+ * ships empty on purpose rather than with a stock photo.
  */
-function pinsdownload_image_slot( $ratio = 'wide', $label = '' ) {
+function pinsdownload_image_slot( $ratio = 'wide', $label = '', $mod_key = '' ) {
+	if ( $mod_key ) {
+		$url = get_theme_mod( $mod_key );
+		if ( $url ) {
+			printf(
+				'<img class="pd-slot-img pd-slot-img--%1$s" src="%2$s" alt="%3$s" loading="lazy">',
+				esc_attr( $ratio ),
+				esc_url( $url ),
+				esc_attr( $label )
+			);
+			return;
+		}
+	}
+
 	if ( ! $label ) {
 		$label = __( 'Add an image here', 'pinsdownload' );
 	}

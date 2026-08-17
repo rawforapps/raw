@@ -131,3 +131,4 @@ require_once PINSDOWNLOAD_DIR . '/inc/metaboxes.php';
 require_once PINSDOWNLOAD_DIR . '/inc/schema.php';
 require_once PINSDOWNLOAD_DIR . '/inc/seo.php';
 require_once PINSDOWNLOAD_DIR . '/inc/icons.php';
+require_once PINSDOWNLOAD_DIR . '/inc/customizer.php';

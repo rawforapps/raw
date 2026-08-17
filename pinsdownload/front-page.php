@@ -49,7 +49,7 @@ get_header();
 				<p><?php esc_html_e( 'Your video saves straight to your device. No app, no sign up.', 'pinsdownload' ); ?></p>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: copying a pin link', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: copying a pin link', 'pinsdownload' ), 'pinsdownload_img_howto_video' ); ?>
 			</div>
 		</div>
 	</div>
@@ -72,7 +72,7 @@ get_header();
 				</ol>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: Pinterest app menu', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: Pinterest app menu', 'pinsdownload' ), 'pinsdownload_img_howto_app' ); ?>
 			</div>
 		</div>
 	</div>
@@ -94,7 +94,7 @@ get_header();
 				</ol>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: desktop browser view', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: desktop browser view', 'pinsdownload' ), 'pinsdownload_img_howto_computer' ); ?>
 			</div>
 		</div>
 	</div>
@@ -117,7 +117,7 @@ get_header();
 				</ol>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: iPhone Safari view', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: iPhone Safari view', 'pinsdownload' ), 'pinsdownload_img_howto_iphone' ); ?>
 			</div>
 		</div>
 	</div>
@@ -140,7 +140,7 @@ get_header();
 				</ol>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: Android Chrome view', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'tall', __( 'Screenshot: Android Chrome view', 'pinsdownload' ), 'pinsdownload_img_howto_android' ); ?>
 			</div>
 		</div>
 	</div>
@@ -195,7 +195,7 @@ get_header();
 				<p><?php esc_html_e( "A Pinterest video downloader is a free online tool that saves Pinterest videos, images, and GIFs to your device. Pinterest doesn't let you download videos directly from its app or website, so this tool reads the pin's link and gives you a direct file to save. You don't need an account, and nothing is stored on our end after your download finishes.", 'pinsdownload' ); ?></p>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'square', __( 'Illustration: link in, file out', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'square', __( 'Illustration: link in, file out', 'pinsdownload' ), 'pinsdownload_img_what_is' ); ?>
 			</div>
 		</div>
 	</div>
@@ -310,7 +310,7 @@ get_header();
 		<div class="pd-testimonials">
 			<div class="pd-testimonial">
 				<div class="pd-testimonial__head">
-					<?php pinsdownload_image_slot( 'avatar' ); ?>
+					<?php pinsdownload_image_slot( 'avatar', __( 'J. Ahmed', 'pinsdownload' ), 'pinsdownload_img_testimonial_1' ); ?>
 					<div class="pd-testimonial__stars">★★★★★</div>
 				</div>
 				<strong><?php esc_html_e( 'Good tool', 'pinsdownload' ); ?></strong>
@@ -319,7 +319,7 @@ get_header();
 			</div>
 			<div class="pd-testimonial">
 				<div class="pd-testimonial__head">
-					<?php pinsdownload_image_slot( 'avatar' ); ?>
+					<?php pinsdownload_image_slot( 'avatar', __( 'M. Khan', 'pinsdownload' ), 'pinsdownload_img_testimonial_2' ); ?>
 					<div class="pd-testimonial__stars">★★★★★</div>
 				</div>
 				<strong><?php esc_html_e( 'Simple and fast', 'pinsdownload' ); ?></strong>
@@ -328,7 +328,7 @@ get_header();
 			</div>
 			<div class="pd-testimonial">
 				<div class="pd-testimonial__head">
-					<?php pinsdownload_image_slot( 'avatar' ); ?>
+					<?php pinsdownload_image_slot( 'avatar', __( 'S. Rehman', 'pinsdownload' ), 'pinsdownload_img_testimonial_3' ); ?>
 					<div class="pd-testimonial__stars">★★★★☆</div>
 				</div>
 				<strong><?php esc_html_e( 'Does what it says', 'pinsdownload' ); ?></strong>

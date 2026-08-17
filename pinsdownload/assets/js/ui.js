@@ -99,17 +99,38 @@
 				var split = document.createElement( 'div' );
 				split.className = 'pd-split' + ( index % 2 === 1 ? ' pd-split--reverse' : '' );
 
+				// If the editor already has a real image/figure in this
+				// section (inserted normally via the block/classic
+				// editor's Image tool), use that instead of a synthetic
+				// placeholder — first match wins, one media slot per block.
+				var realMedia = null;
+				var textNodes = [];
+				group.rest.forEach( function ( node ) {
+					if ( ! realMedia && node.nodeType === 1 ) {
+						if ( node.tagName === 'IMG' || node.tagName === 'FIGURE' || ( node.querySelector && node.querySelector( 'img' ) ) ) {
+							realMedia = node;
+							return;
+						}
+					}
+					textNodes.push( node );
+				} );
+
 				var textCol = document.createElement( 'div' );
 				textCol.className = 'pd-split__text';
 				textCol.appendChild( group.heading );
-				group.rest.forEach( function ( node ) {
+				textNodes.forEach( function ( node ) {
 					textCol.appendChild( node );
 				} );
 
-				var headingText = group.heading.textContent.trim();
 				var mediaCol = document.createElement( 'div' );
 				mediaCol.className = 'pd-split__media';
-				mediaCol.appendChild( buildImageSlot( 'Add an image for "' + headingText + '"', iconForHeading( headingText ) ) );
+				if ( realMedia ) {
+					realMedia.classList.add( 'pd-split__media-img' );
+					mediaCol.appendChild( realMedia );
+				} else {
+					var headingText = group.heading.textContent.trim();
+					mediaCol.appendChild( buildImageSlot( 'Add an image for "' + headingText + '"', iconForHeading( headingText ) ) );
+				}
 
 				split.appendChild( textCol );
 				split.appendChild( mediaCol );

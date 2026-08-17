@@ -1102,6 +1102,56 @@ p {
 	display: none;
 }
 
+/* Real image, once picked via the Customizer — same footprint as the
+   placeholder it replaces, so layout doesn't jump when one is added. */
+.pd-slot-img {
+	width: 100%;
+	border-radius: var(--pd-radius);
+	object-fit: cover;
+}
+.pd-slot-img--wide {
+	aspect-ratio: 16 / 10;
+}
+.pd-slot-img--square {
+	aspect-ratio: 1 / 1;
+}
+.pd-slot-img--tall {
+	aspect-ratio: 3 / 4;
+}
+.pd-slot-img--avatar {
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+.pd-split__media .pd-slot-img {
+	max-width: 420px;
+	margin: 0 auto;
+	display: block;
+}
+
+/* A real image/figure the site owner inserted via the normal block or
+   classic editor, picked up automatically by ui.js's content enricher
+   in place of a synthetic placeholder. */
+.pd-split__media-img {
+	max-width: 420px;
+	margin: 0 auto;
+	border-radius: var(--pd-radius);
+	overflow: hidden;
+}
+.pd-split__media-img img,
+img.pd-split__media-img {
+	width: 100%;
+	border-radius: var(--pd-radius);
+	display: block;
+}
+.pd-split__media-img figcaption {
+	font-size: 0.82rem;
+	color: var(--pd-ink-faint);
+	text-align: center;
+	margin-top: 8px;
+}
+
 /* ------------------------------------------------------------------ *
  * Split (zig-zag two column) layout
  * ------------------------------------------------------------------ */

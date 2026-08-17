@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</table>
 			</div>
 			<div class="pd-split__media">
-				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: a resolved public pin', 'pinsdownload' ) ); ?>
+				<?php pinsdownload_image_slot( 'wide', __( 'Screenshot: a resolved public pin', 'pinsdownload' ), 'pinsdownload_img_works_doesnt' ); ?>
 			</div>
 			</div>
 		</div>

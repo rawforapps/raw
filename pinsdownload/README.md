@@ -24,6 +24,16 @@ content docs; only how it's presented changed.
 2. WordPress admin → Appearance → Themes → Add New → Upload Theme.
 3. Activate. The homepage works immediately at `/`, front-page.php is
    used automatically regardless of the Settings → Reading choice.
+   **This is why the homepage never appears in Pages → All Pages** —
+   it isn't a Page post at all, it's a template file that WordPress
+   renders directly for the site root. That's normal, not a bug: there
+   is nothing to click into and edit there, because the homepage's
+   content lives in code (`front-page.php`), not in the database. If
+   you want the homepage's copy itself editable from wp-admin the way
+   a normal Page is, that needs a deliberate rebuild of that one file
+   into a Page-backed template — say so and it can be done, but every
+   other page in this theme (legal pages, GIF/Image downloaders, etc.)
+   already works that way.
 4. Appearance → Menus: create a Primary menu and a Footer menu and
    assign them to the "Primary Menu" / "Footer Menu" locations. Add
    your legal pages (Privacy Policy, DMCA, etc.) once you've created
@@ -126,6 +136,29 @@ add_action( 'pinsdownload_ad_slot', function ( $position ) {
 Fires after the format strip on the homepage (`homepage_after_strip`)
 and on every Tool Landing Page (`landing_after_strip`) — both are
 below the tool box, never on top of it.
+
+## Adding real images to the empty placeholder slots
+
+Every dashed placeholder box on the site (how-to screenshots, the
+"what is" illustration, testimonial avatars, etc.) is an empty slot on
+purpose, not a stock photo. Two different ways to fill them in,
+depending on which page:
+
+**Homepage + the works/doesn't table (shown on every page)** — these
+are fixed, code-level slots with no page content behind them, so they
+get a dedicated native picker: **Appearance → Customize → PinsDownload
+Images**. Ten labeled slots, each a standard WordPress Media Library
+control — upload a new file or pick an existing one, hit Publish. Any
+slot left empty just keeps showing its placeholder; nothing breaks.
+
+**Tool Landing Pages (GIF Downloader, Image Downloader, and any new
+one you add)** — their content comes from the normal WordPress editor
+(Pages → [that page] → edit). Just insert an Image block wherever you
+want a screenshot, in the flow of the text under whichever heading
+it belongs to, and publish. The page automatically detects it and
+moves it into that section's image slot instead of showing the dashed
+placeholder — no shortcode, no special field, it's picked up by
+whatever real `<img>` (or image block) you already put there.
 
 ## Before you go live: things that need YOUR input, not code
 
