@@ -1,0 +1,25 @@
+{
+	"name": "PinsDownload — Pinterest Video Downloader",
+	"short_name": "PinsDownload",
+	"description": "Download Pinterest videos, images, GIFs, stories, boards and profiles. No login, no watermark.",
+	"start_url": "/?utm_source=pwa",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#e60023",
+	"orientation": "portrait-primary",
+	"icons": [
+		{
+			"src": "assets/icons/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "assets/icons/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	]
+}
