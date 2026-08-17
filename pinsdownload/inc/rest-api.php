@@ -14,6 +14,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'rest_api_init',
 	function () {
+		// Unauthenticated, trivial to check from a plain browser tab —
+		// exists purely so a stale/duplicate copy of this snippet is
+		// obvious at a glance instead of a silent guessing game. If this
+		// route 404s while /resolve works, the active code is not this
+		// file; delete the old WPCode snippet and re-paste this one.
+		register_rest_route(
+			'pinsdownload/v1',
+			'/version',
+			array(
+				'methods'             => 'GET',
+				'callback'            => 'pinsdownload_rest_version',
+				'permission_callback' => '__return_true',
+			)
+		);
+
 		register_rest_route(
 			'pinsdownload/v1',
 			'/resolve',
@@ -119,4 +134,15 @@ function pinsdownload_rest_resolve( WP_REST_Request $request ) {
 function pinsdownload_rest_debug( WP_REST_Request $request ) {
 	$resolver = new PinsDownload_Resolver();
 	return new WP_REST_Response( $resolver->debug_fetch( $request->get_param( 'url' ) ), 200 );
+}
+
+function pinsdownload_rest_version() {
+	return new WP_REST_Response(
+		array(
+			'build'                => defined( 'PINSDOWNLOAD_BACKEND_BUILD' ) ? PINSDOWNLOAD_BACKEND_BUILD : 'theme-included',
+			'has_debug_route'      => true,
+			'has_direct_api_fetch' => method_exists( 'PinsDownload_Resolver', 'call_resource' ),
+		),
+		200
+	);
 }
