@@ -1,27 +1,32 @@
 # PinsDownload — Embeddable Tool (Kadence / any theme)
 
-Three deliverables here, pick based on what you're doing:
+Four files here. **Only one of them gets installed per-page-you-add —
+the other three are installed once, ever, and stay shared:**
 
-- **`pinsdownload-backend-wpcode.php`** — a WPCode PHP Snippet. Paste
-  it into an existing page/theme via WPCode when you just want the
-  downloader tool itself, dropped into a page you're building some
-  other way (Kadence, Elementor, whatever).
-- **`front-page.php`** — a complete, ready-to-upload WordPress
-  homepage template. Drop it straight into an active theme's folder
-  as `front-page.php` and it becomes the whole homepage: full
-  PinsDownload homepage copy, a premium Pinterest-red-accented design
-  system, and this same downloader tool embedded live in the hero —
-  not a placeholder. See "The homepage template" below.
-- **`pinsdownload-editable-sections.php`** — a companion WPCode PHP
-  Snippet that pairs with `front-page.php`. Makes essentially every
-  content section of the homepage editable — text, images, links,
-  adding/removing items — **directly on your existing homepage Page**,
-  the same one you already open under Pages in wp-admin. No separate
-  admin screen to go find. Only the header, the hero heading + the
-  tool itself, and the footer stay fixed (see below for why). See
-  "Editing content in Gutenberg" below.
+- **`pinsdownload-backend-wpcode.php`** — a standalone WPCode PHP
+  Snippet with the downloader tool only (no homepage design around
+  it). Use this if you're NOT using the templates below at all —
+  dropping just the tool into a page you're building some other way
+  (Kadence, Elementor, whatever). Skip this one if you're using
+  `front-page.php` / `page-tool-landing.php`, which already embed the
+  same tool.
+- **`pinsdownload-editable-sections.php`** — the shared "core": icons,
+  CSS, the downloader tool logic, and the editable-content-zone
+  system. **Install this once, site-wide**, as its own WPCode PHP
+  Snippet (Auto Insert → Run Everywhere) — it's what your question was
+  really about, see "One core file, many pages" below for the full
+  answer.
+- **`front-page.php`** — the homepage template. Copy into your active
+  theme's folder once; WordPress uses it automatically for the site's
+  static front page.
+- **`page-tool-landing.php`** — a **reusable page template** for every
+  *additional* tool page you create (Image Downloader, GIF Downloader,
+  Story Downloader, ...). Also copied into the theme folder just
+  once — then for each new Page you create, pick "PinsDownload Tool
+  Landing" from Page Attributes → Template in wp-admin. No new PHP
+  file per page.
 
-All three files are self-contained: no theme dependency, no REST API,
+All four are self-contained: no page builder dependency, no REST API,
 nothing else to install beyond what's described here.
 
 ## Install the tool alone (1 step, ~1 minute)
@@ -85,25 +90,66 @@ confirmed working there.
   If this page gets heavy traffic, you're sending that same volume
   of requests to their API.
 
+## One core file, many pages
+
+This answers the actual question directly: **`pinsdownload-editable-sections.php`
+is universal — one copy, installed once, works for every page.**
+You do NOT create a new `.php` file per page, and you do NOT paste
+per-page copies into `mu-plugins` — that would mean re-pasting the
+same ~700 lines every time you add a tool page, and re-pasting them
+*again* in every copy whenever something needs fixing. Instead:
+
+- **Install `pinsdownload-editable-sections.php` exactly once** — as
+  a WPCode PHP Snippet (Auto Insert → Run Everywhere) is the simplest,
+  matching how you already installed the tool snippet. Pasting it into
+  `wp-content/mu-plugins/` (via File Manager, as a single `.php` file
+  directly in that folder — mu-plugins doesn't support subfolders for
+  auto-loading) works exactly as well and survives theme switches,
+  but isn't required — either is fine, just pick one, not both.
+- **`front-page.php` and `page-tool-landing.php` are also each
+  installed once** — copied into the active theme's folder. Neither
+  is duplicated per page either.
+- **What *is* per-page is content, not code.** Every Page that uses
+  the "PinsDownload Tool Landing" template (Page Attributes → Template
+  in wp-admin, after copying `page-tool-landing.php` into the theme
+  once) gets its own independent set of editable zones — the same 19
+  H2-marker names as the homepage (see the table below), but each
+  page's "How to Use", "FAQ", etc. only affects that page. Create
+  "Pinterest Image Downloader" and "Pinterest GIF Downloader" as two
+  Pages with that template, and they're two separate, independently
+  editable pages sharing the same design/tool/code.
+- **The page's own title becomes its H1 automatically** — name the
+  Page "Pinterest Image Downloader" and that's what shows in the hero,
+  no code edit needed. Set that Page's **Excerpt** (Page editor →
+  Page panel → Excerpt; enable the panel from the "⋮" menu →
+  Preferences → Panels if it's hidden) for the hero subtitle, or leave
+  it unset for a generic fallback line.
+- **New Tool Landing pages start with a lightweight skeleton**, not
+  fabricated copy — every marker heading plus a one-line hint of what
+  to put underneath (e.g. "Add a Table block comparing this tool to
+  alternatives"), since this template doesn't know what a given tool
+  page is about. Open the new page in wp-admin once after creating it
+  to see the skeleton auto-fill in.
+
 ## The homepage template (`front-page.php`)
 
-A single, self-contained WordPress homepage template — no page
-builder, no separate widget or shortcode install. It integrates with
-your active theme via `get_header()` / `get_footer()`, so the theme's
-own header, nav, and footer stay exactly as they are; this file only
-owns the content between them.
+A single WordPress homepage template — no page builder, no separate
+widget or shortcode install. It integrates with your active theme via
+`get_header()` / `get_footer()`, so the theme's own header, nav, and
+footer stay exactly as they are; this file only owns the content
+between them. (`page-tool-landing.php`, for additional tool pages, is
+installed the same way — see "One core file, many pages" above.)
 
 **Install:**
 
 1. Copy `front-page.php` into your active theme's folder, e.g.
    `/wp-content/themes/YOUR-THEME/front-page.php`.
-2. Also install `pinsdownload-editable-sections.php` as its own
-   WPCode PHP Snippet (Auto Insert → Run Everywhere), the same way
-   you'd install the tool snippet. `front-page.php` calls functions
-   this file defines (`pd_render_content_zone()`, `pd_render_faq_zone()`,
-   `pd_get_faq_pairs()`) — without it active, those sections just show
-   a small notice to logged-in editors instead of a fatal error, but
-   nothing will be editable until it's active.
+2. Also install `pinsdownload-editable-sections.php` — **once,
+   site-wide** (see "One core file, many pages" above for exactly what
+   that means and why it's not per-page). `front-page.php` calls
+   functions this file defines — without it active, sections show a
+   small notice to logged-in editors instead of a fatal error, but
+   nothing works until it's active.
 3. In wp-admin: **Settings → Reading → Your homepage displays** must
    be "A static page", with a real Page chosen (Pages → Add New if you
    don't have one yet — title doesn't matter). That Page's own content
@@ -115,6 +161,24 @@ owns the content between them.
    the first time it loads after being installed — refresh if you
    opened it before installing the snippet.
 5. Purge any page cache after uploading.
+
+## Adding another tool page (`page-tool-landing.php`)
+
+1. Copy `page-tool-landing.php` into the same theme folder as
+   `front-page.php` (one-time, not per page).
+2. In wp-admin: **Pages → Add New**. Title it exactly what the page
+   is about, e.g. "Pinterest Image Downloader" — that's what becomes
+   the H1. Optionally set an Excerpt for the subtitle line.
+3. In the **Page** panel on the right, under **Template**, choose
+   **PinsDownload Tool Landing**. Publish.
+4. Reload the page in wp-admin — it auto-fills with the marker-heading
+   skeleton described above. Fill in each zone's real content the
+   same way as the homepage (see "Editing content in Gutenberg"
+   below — it applies to every page using this template, not only the
+   homepage).
+5. Repeat for each additional tool page. Every one of them shares the
+   same `pinsdownload-editable-sections.php` core — nothing to
+   reinstall.
 
 **What's on it:**
 
@@ -167,14 +231,15 @@ fake data):**
 
 ## Editing content in Gutenberg
 
-There is **no separate admin screen** for this. You edit the same
-homepage Page you already have open in wp-admin (Pages → your
-homepage → Edit) — the normal block editor, exactly as it looks for
-any other Page. `front-page.php` reads that Page's own content and
-splits it into zones; everything about how that Page *renders*
-(header, hero, tool, footer, section order/spacing/backgrounds) is
-fixed in the template regardless of what's on the Page — only the
-content inside each zone is yours to edit.
+Applies the same way to the homepage and to every "PinsDownload Tool
+Landing" page. There is **no separate admin screen** for this — you
+edit the Page itself, in wp-admin (Pages → that page → Edit), the
+normal block editor exactly as it looks for any other Page. The
+template reads that Page's own content and splits it into zones;
+everything about how the page *renders* (header, hero, tool, footer,
+section order/spacing/backgrounds) is fixed in the template regardless
+of what's on the Page — only the content inside each zone is yours to
+edit, and each page's zones are independent of every other page's.
 
 Zones are marked by **Heading blocks (H2)** with these exact names,
 typed as ordinary content on the page, in any order you like:
@@ -240,15 +305,16 @@ Note the marker headings are **H2** and everything under them is
 tells "this is a new zone" apart from "this is just a subheading
 inside the current zone."
 
-**Still fixed, not editable from wp-admin** — and why: the site
-header and footer (owned by your theme); the Hero's eyebrow, H1, and
-subtitle (a page should only have one H1, and it's tightly bound to
-the tool right under it); the downloader tool itself (`id="pdl-tool"`
-— it's a working form and PHP logic, not text content); the FAQ
-accordion's open/close mechanics (its questions and answers *are*
-editable, via the FAQ zone above — just not the click-to-expand
-behavior itself); and the final CTA's scroll-to-tool button. Say the
-word if you want any of those opened up too.
+**Still fixed, not editable as a zone** — and why: the site header
+and footer (owned by your theme); the Hero's eyebrow and H1/subtitle
+(a page should only have one H1 — on the homepage it's fixed text, on
+a Tool Landing page it's that Page's own title/excerpt, set in the
+normal Page fields, not a content zone); the downloader tool itself
+(`id="pdl-tool"` — it's a working form and PHP logic, not text
+content); the FAQ accordion's open/close mechanics (its questions and
+answers *are* editable, via the FAQ zone above — just not the
+click-to-expand behavior itself); and the final CTA's scroll-to-tool
+button. Say the word if you want any of those opened up too.
 
 ## "Why does this page still show up as its own link?"
 

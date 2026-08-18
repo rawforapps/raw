@@ -1,30 +1,42 @@
 <?php
 /**
- * PinsDownload — standalone WordPress homepage template.
+ * Template Name: PinsDownload Tool Landing
  *
- * Drop this file into any active theme as front-page.php (e.g.
- * /wp-content/themes/YOUR-THEME/front-page.php), then set
- * Settings -> Reading -> "Your homepage displays" -> A static page.
+ * Reusable page template for any additional PinsDownload tool page
+ * (Image Downloader, GIF Downloader, Story Downloader, Board
+ * Downloader, ...). Drop this file into the same active theme folder
+ * as front-page.php, then for any new Page: Page Attributes ->
+ * Template -> "PinsDownload Tool Landing".
  *
- * This file is intentionally thin: it only lays out which sections
- * exist, in what order, and their fixed headings. Everything reusable
- * — icons, CSS, the downloader tool, and the editable content zone
- * system — lives in embed/pinsdownload-editable-sections.php, which
- * MUST be installed alongside this file (its own WPCode PHP Snippet,
- * Auto Insert -> Run Everywhere). See that file's header comment for
- * the full picture, and for page-tool-landing.php — the matching
- * reusable template for any additional tool page (Image Downloader,
- * GIF Downloader, ...) you create later; both templates share this
- * same core file, so you install it once, not per page.
+ * Same shell as front-page.php, same shared core (icons, CSS, the
+ * downloader tool, the editable-zone system) from
+ * embed/pinsdownload-editable-sections.php — install that ONCE,
+ * it's shared by every page using either template, not copied per
+ * page. See that file's header comment for the full picture.
  *
- * Technical foundation (set outside this file, WordPress already
- * owns <title>/<meta> — via your SEO plugin or the theme's own
- * header.php):
- *   Title tag:       Pinterest Video Downloader – Save Videos, Images, GIFs & Stories Free | PinsDownload
- *   Meta description: Download Pinterest videos, images, and GIFs in HD for free with PinsDownload. No login, no watermark, no app needed.
- *   Schema on this page: SoftwareApplication, HowTo, FAQPage (all three output inline near the
- *   bottom of this file as JSON-LD). BreadcrumbList belongs on inner pages, not the homepage.
- *   URL: homepage stays at the site root, not a subfolder.
+ * What's dynamic per page, so one template file works for all of
+ * them without editing PHP per tool:
+ *   - The Hero H1 is this page's own title (Pages -> title field) —
+ *     name the page "Pinterest Image Downloader", "Pinterest GIF
+ *     Downloader", etc. and the H1 follows automatically.
+ *   - The Hero subtitle is this page's Excerpt if you set one
+ *     (Page editor -> Page panel -> Excerpt; enable it from the
+ *     "..." menu -> Preferences -> Panels if you don't see it), else
+ *     a generic fallback line.
+ *   - Every other section's content comes from this page's own
+ *     editable zones (Feature Strip, Quick Steps, How to Use, ...) —
+ *     independent from the homepage's and from every other tool
+ *     page's. First time you open a brand-new page using this
+ *     template, it's auto-filled with a lightweight skeleton (marker
+ *     headings + a one-line hint each) — no fabricated tool-specific
+ *     copy, since this template doesn't know what tool it's about.
+ *
+ * Technical foundation for each page you create with this template
+ * (set outside this file via your SEO plugin, same reasoning as
+ * front-page.php): its own title tag, meta description, and — if the
+ * tool it's about is genuinely different from the homepage's —
+ * BreadcrumbList schema, which belongs on inner pages like this one,
+ * not the homepage.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -74,10 +86,10 @@ if ( ! function_exists( 'pd_get_faq_pairs' ) ) {
 	}
 }
 
-/* Process the tool BEFORE get_header() — nothing depends on this
-   timing (no headers/cookies set), just keeping the original
-   single-file snippet's pattern. */
 list( $pdl_result, $pdl_error, $pdl_submitted_url ) = pd_process_tool_submission();
+
+$pd_page_title    = get_the_title();
+$pd_page_subtitle = has_excerpt() ? get_the_excerpt() : 'Download from Pinterest in one click. Free, fast, and no account needed.';
 
 get_header();
 pd_output_styles();
@@ -87,6 +99,7 @@ pd_output_styles();
 
 	<!-- =====================================================
 	     1. HERO + TOOL — pintsave.net downloader embedded live.
+	     H1/subtitle come from this page's own title/excerpt.
 	     ===================================================== -->
 	<section class="pd-hero-section">
 		<div class="pd-hero-glow" aria-hidden="true"></div>
@@ -94,8 +107,8 @@ pd_output_styles();
 		<span class="pd-hero-shape pd-hero-shape--2" aria-hidden="true"></span>
 		<div class="pd-container pd-hero">
 			<p class="pd-hero__eyebrow">Pinterest Downloader</p>
-			<h1 class="pd-hero__title">Pinterest Video Downloader</h1>
-			<p class="pd-hero__subtitle">Download Pinterest videos, images, GIFs, and stories in one click. Free, fast, and no account needed. Works as a full Pinterest video downloader online, no software to install.</p>
+			<h1 class="pd-hero__title"><?php echo esc_html( $pd_page_title ); ?></h1>
+			<p class="pd-hero__subtitle"><?php echo esc_html( $pd_page_subtitle ); ?></p>
 
 			<div class="pd-tool-card" id="pdl-tool">
 				<?php pd_render_tool_widget( $pdl_result, $pdl_error, $pdl_submitted_url ); ?>
@@ -104,7 +117,7 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     2. GUTENBERG ZONE — "Feature Strip"
+	     GUTENBERG ZONE — "Feature Strip"
 	     ===================================================== -->
 	<div class="pd-strip">
 		<div class="pd-strip-row">
@@ -113,21 +126,19 @@ pd_output_styles();
 	</div>
 
 	<!-- =====================================================
-	     3. GUTENBERG ZONE — "Quick Steps"
-	     Seeded as 3 Columns (Heading+Paragraph each), which reuses
-	     the same card styling as the "Features" zone below.
+	     GUTENBERG ZONE — "Quick Steps"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
-				<h2>How to Download a Pinterest Video</h2>
+				<h2>How to Use This Tool</h2>
 			</div>
 			<?php pd_render_content_zone( 'pd-quick-steps' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     4-7. GUTENBERG ZONE — "How to Use"
+	     GUTENBERG ZONE — "How to Use"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
@@ -144,14 +155,14 @@ pd_output_styles();
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
-				<h2>See PinsDownload in Action</h2>
+				<h2>See It in Action</h2>
 			</div>
 			<?php pd_render_content_zone( 'pd-images' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     8. GUTENBERG ZONE — "Works and Doesnt"
+	     GUTENBERG ZONE — "Works and Doesnt"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
@@ -163,32 +174,31 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     9. GUTENBERG ZONE — "Features"
+	     GUTENBERG ZONE — "Features"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Why People Use This Tool</h2>
-				<p>PinsDownload is built to be simple, honest, and free. Here's what that means in practice.</p>
 			</div>
 			<?php pd_render_content_zone( 'pd-features' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     10. GUTENBERG ZONE — "Content Types"
+	     GUTENBERG ZONE — "Content Types"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
-				<h2>What Else You Can Download From Pinterest</h2>
+				<h2>What Else You Can Download</h2>
 			</div>
 			<?php pd_render_content_zone( 'pd-content-types' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     11-12 & 17. GUTENBERG ZONE — "Explanations"
+	     GUTENBERG ZONE — "Explanations"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
@@ -197,19 +207,19 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     13. GUTENBERG ZONE — "Comparison"
+	     GUTENBERG ZONE — "Comparison"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
-				<h2>How This Compares to Other Downloaders</h2>
+				<h2>How This Compares</h2>
 			</div>
 			<?php pd_render_content_zone( 'pd-comparison' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     14. GUTENBERG ZONE — "Devices"
+	     GUTENBERG ZONE — "Devices"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
@@ -221,7 +231,7 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     15. GUTENBERG ZONE — "Safety"
+	     GUTENBERG ZONE — "Safety"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
@@ -234,7 +244,7 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     16. GUTENBERG ZONE — "Trust Badges"
+	     GUTENBERG ZONE — "Trust Badges"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
@@ -245,12 +255,10 @@ pd_output_styles();
 		</div>
 	</section>
 
-	<!-- 17. Is It Legal to Download Pinterest Videos? — content lives in the "Explanations" zone above. -->
-
 	<!-- =====================================================
-	     18. GUTENBERG ZONE — "Testimonials"
+	     GUTENBERG ZONE — "Testimonials"
 	     ===================================================== -->
-	<section class="pd-section pd-band--soft">
+	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>What Users Say</h2>
@@ -260,9 +268,9 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     19. GUTENBERG ZONE — "Whats New"
+	     GUTENBERG ZONE — "Whats New"
 	     ===================================================== -->
-	<section class="pd-section">
+	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head" style="margin-bottom:36px;">
 				<div class="pd-eyebrow-icon" style="margin-left:auto;margin-right:auto;"><?php pd_icon( 'clock' ); ?></div>
@@ -273,9 +281,9 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     20. GUTENBERG ZONE — "Guides"
+	     GUTENBERG ZONE — "Guides"
 	     ===================================================== -->
-	<section class="pd-section pd-band--soft">
+	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Guides &amp; Tips</h2>
@@ -285,9 +293,9 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     21. GUTENBERG ZONE — "FAQ"
+	     GUTENBERG ZONE — "FAQ"
 	     ===================================================== -->
-	<section class="pd-section">
+	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Frequently Asked Questions</h2>
@@ -297,9 +305,9 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     22. GUTENBERG ZONE — "Quick Answers"
+	     GUTENBERG ZONE — "Quick Answers"
 	     ===================================================== -->
-	<section class="pd-section pd-band--soft">
+	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Quick Answers</h2>
@@ -309,9 +317,9 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     23. GUTENBERG ZONE — "Other Tools"
+	     GUTENBERG ZONE — "Other Tools"
 	     ===================================================== -->
-	<section class="pd-section">
+	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Other Tools</h2>
@@ -321,9 +329,8 @@ pd_output_styles();
 	</section>
 
 	<!-- =====================================================
-	     FINAL CTA — heading/button stay fixed (the button's
-	     scroll-to-tool behavior needs to always exist); the
-	     supporting line is the "Final CTA" GUTENBERG ZONE.
+	     FINAL CTA — heading/button stay fixed; the supporting
+	     line is the "Final CTA" GUTENBERG ZONE.
 	     ===================================================== -->
 	<section class="pd-cta pd-band--soft">
 		<div class="pd-container pd-reveal">
@@ -341,42 +348,25 @@ pd_output_styles();
 
 <?php
 /* =========================================================
-   SCHEMA — SoftwareApplication, HowTo, FAQPage. No ratings/
-   reviews are included since no real testimonials exist yet.
+   SCHEMA — SoftwareApplication (name follows this page's title)
+   and FAQPage (from this page's own FAQ zone). No HowTo block by
+   default since the Quick Steps zone's content is fully editable
+   per page, unlike the homepage's fixed 3-step copy; no ratings/
+   reviews since there are no real testimonials yet.
 ========================================================= */
 $pd_schema_software = array(
-	'@context'          => 'https://schema.org',
-	'@type'             => 'SoftwareApplication',
-	'name'              => 'PinsDownload',
+	'@context'            => 'https://schema.org',
+	'@type'               => 'SoftwareApplication',
+	'name'                => $pd_page_title,
 	'applicationCategory' => 'MultimediaApplication',
-	'operatingSystem'   => 'Any (web-based)',
-	'url'               => home_url( '/' ),
-	'offers'            => array(
+	'operatingSystem'     => 'Any (web-based)',
+	'url'                 => get_permalink(),
+	'offers'              => array(
 		'@type'         => 'Offer',
 		'price'         => '0',
 		'priceCurrency' => 'USD',
 	),
-	'description'       => 'Download Pinterest videos, images, and GIFs in HD for free with PinsDownload. No login, no watermark, no app needed.',
-);
-
-$pd_schema_howto = array(
-	'@context'    => 'https://schema.org',
-	'@type'       => 'HowTo',
-	'name'        => 'How to Download a Pinterest Video',
-	'step'        => array(
-		array(
-			'@type' => 'HowToStep',
-			'text'  => 'Open Pinterest and find the video you want.',
-		),
-		array(
-			'@type' => 'HowToStep',
-			'text'  => 'Tap the share icon and choose "Copy Link."',
-		),
-		array(
-			'@type' => 'HowToStep',
-			'text'  => 'Paste the link above and tap Download.',
-		),
-	),
+	'description'         => $pd_page_subtitle,
 );
 
 $pd_schema_faq_items = array();
@@ -397,8 +387,9 @@ $pd_schema_faq = array(
 );
 ?>
 <script type="application/ld+json"><?php echo wp_json_encode( $pd_schema_software ); ?></script>
-<script type="application/ld+json"><?php echo wp_json_encode( $pd_schema_howto ); ?></script>
+<?php if ( ! empty( $pd_schema_faq_items ) ) : ?>
 <script type="application/ld+json"><?php echo wp_json_encode( $pd_schema_faq ); ?></script>
+<?php endif; ?>
 
 <?php
 get_footer();
