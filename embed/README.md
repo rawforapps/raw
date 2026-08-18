@@ -13,14 +13,13 @@ Three deliverables here, pick based on what you're doing:
   system, and this same downloader tool embedded live in the hero —
   not a placeholder. See "The homepage template" below.
 - **`pinsdownload-editable-sections.php`** — a companion WPCode PHP
-  Snippet that pairs with `front-page.php`. Registers a small
-  "Homepage Sections" area in wp-admin using the normal Gutenberg
-  block editor, so five specific parts of the homepage (How to Use,
-  Images, Explanations, Features, FAQ) can be edited — text, images,
-  adding/removing items — straight from wp-admin, without touching
-  code. Everything else on the page (hero + tool, header, footer, and
-  every other structured section) stays fixed. See "Editing content
-  in Gutenberg" below.
+  Snippet that pairs with `front-page.php`. Makes five specific parts
+  of the homepage (How to Use, Images, Explanations, Features, FAQ)
+  editable — text, images, adding/removing items — **directly on your
+  existing homepage Page**, the same one you already open under Pages
+  in wp-admin. No separate admin screen to go find. Everything else
+  on the page (hero + tool, header, footer, and every other structured
+  section) stays fixed. See "Editing content in Gutenberg" below.
 
 All three files are self-contained: no theme dependency, no REST API,
 nothing else to install beyond what's described here.
@@ -105,13 +104,17 @@ owns the content between them.
    `pd_get_faq_pairs()`) — without it active, those sections just show
    a small notice to logged-in editors instead of a fatal error, but
    nothing will be editable until it's active.
-3. In wp-admin: **Settings → Reading → Your homepage displays**. If
-   your theme already resolves `front-page.php` automatically for the
-   site root (most themes do once "A static page" is selected, even
-   with the front page dropdown left on the theme's default), that's
-   it. Otherwise pick or create a blank page and set it as the front
-   page — the theme file still takes over the layout.
-4. Purge any page cache after uploading.
+3. In wp-admin: **Settings → Reading → Your homepage displays** must
+   be "A static page", with a real Page chosen (Pages → Add New if you
+   don't have one yet — title doesn't matter). That Page's own content
+   is where the five editable zones below live; `front-page.php`
+   overrides everything else about how that Page looks, but still
+   reads its content for those five zones specifically.
+4. Open that Page in wp-admin and reload it once. If it's completely
+   empty, the snippet fills it in automatically with starter content
+   the first time it loads after being installed — refresh if you
+   opened it before installing the snippet.
+5. Purge any page cache after uploading.
 
 **What's on it:**
 
@@ -163,23 +166,48 @@ notes) — fill these in before launch:**
 
 ## Editing content in Gutenberg
 
-After installing `pinsdownload-editable-sections.php`, a **Homepage
-Sections** item appears in the wp-admin sidebar with five entries,
-each opening the normal block editor (same one Pages/Posts use — add
-paragraphs, headings, images, galleries, lists, columns, anything).
-The first time it runs it auto-fills all five with the current
-homepage copy as a starting point, so nothing looks empty on day one.
+There is **no separate admin screen** for this. You edit the same
+homepage Page you already have open in wp-admin (Pages → your
+homepage → Edit) — the normal block editor, exactly as it looks for
+any other Page. `front-page.php` reads that Page's own content, but
+only for five specific zones; everything else about how that Page
+renders (header, hero, tool, footer, and every other section) is
+fixed in the template regardless of what's on the Page.
 
-Where each one shows up on the page, and how to structure content in
-it so it renders correctly:
+The five zones are marked by **Heading blocks (H2)** with these exact
+names, typed as ordinary content on the page, in any order you like:
 
-| Zone | Shows up as | How to structure it |
+```
+How to Use
+Images
+Explanations
+Features
+FAQ
+```
+
+Whatever you put underneath one of these headings — and above the
+next one — becomes that section's content. The marker heading itself
+is never shown on the live page (front-page.php prints its own
+visible heading for each section); it only tells the code where one
+zone ends and the next begins. The first time the page loads after
+installing the snippet, if it's completely empty, all five markers
+and their starter content get filled in automatically — reload the
+page editor after installing if you don't see this yet.
+
+How to structure the content under each marker so it renders
+correctly:
+
+| Zone (H2 marker) | Shows up as | How to structure it underneath |
 |---|---|---|
-| **How to Use** | A section right after the 3-step explainer | A Heading block per guide (e.g. "Downloading on a Computer"), then a numbered List block, then optionally an Image block for that guide's screenshot. Repeat per guide. Add, remove, or reorder freely. |
+| **How to Use** | A section right after the 3-step explainer | A Heading (H3) block per guide (e.g. "Downloading on a Computer"), then a numbered List block, then optionally an Image block for that guide's screenshot. Repeat per guide. Add, remove, or reorder freely. |
 | **Images** | A standalone gallery section after "How to Use" | Empty by default — add Image or Gallery blocks for product shots or extra screenshots. Leave it empty and the section just won't show anything extra. |
-| **Explanations** | Replaces the old "What Is / What For / Legal" sections | A Heading block per topic, then a Paragraph block under it. Add new topics the same way. |
-| **Features** | The "Why People Use This Tool" grid | Two rows of a **Columns** block, each column holding a Heading + Paragraph — that's what turns into the card grid. Add a column (or a whole new Columns block) for a new feature; the card styling applies automatically. |
-| **FAQ** | The FAQ accordion | **Important:** each question needs a Heading block immediately followed by a Paragraph block (its answer) — that exact Heading→Paragraph pairing is what becomes one accordion item **and** one entry in the FAQPage schema. Anything else (a List, an Image, two Paragraphs in a row) is ignored by the accordion, so keep to that pattern. Add/remove/reorder pairs freely. |
+| **Explanations** | Replaces the old "What Is / What For / Legal" sections | A Heading (H3) block per topic, then a Paragraph block under it. Add new topics the same way. |
+| **Features** | The "Why People Use This Tool" grid | Two rows of a **Columns** block, each column holding a Heading (H3) + Paragraph — that's what turns into the card grid. Add a column (or a whole new Columns block) for a new feature; the card styling applies automatically. |
+| **FAQ** | The FAQ accordion | **Important:** each question needs a Heading (H3) block immediately followed by a Paragraph block (its answer) — that exact Heading→Paragraph pairing is what becomes one accordion item **and** one entry in the FAQPage schema. Anything else (a List, an Image, two Paragraphs in a row) is ignored by the accordion, so keep to that pattern. Add/remove/reorder pairs freely. |
+
+Note the marker headings are **H2** and everything under them is
+**H3** — that's how the code tells "this is a new zone" apart from
+"this is just a subheading inside the current zone."
 
 Everything **not** in that list — the hero and tool, header, footer,
 feature strip, works/doesn't cards, content-type grid, comparison
@@ -190,6 +218,33 @@ wp-admin. Those are either tied to the tool itself, or built as
 precise custom components (accordions, tables, badge grids) where
 open-ended editing risks breaking the layout rather than just
 updating copy. Say the word if you want any of those opened up too.
+
+## "Why does this page still show up as its own link?"
+
+Setting a Page as your static homepage (Settings → Reading) does
+**not** remove it from navigation menus automatically — WordPress
+still treats it as a normal Page with its own slug/URL underneath the
+hood, it just also happens to be what loads at your domain root `/`.
+Two separate things can make it look like it's "showing up" somewhere
+it shouldn't:
+
+- **It's in a nav menu as its own item.** If a menu (Appearance →
+  Menus, or the block-theme Navigation block) has this page added to
+  it by name, remove that menu item — visiting `/` already shows it,
+  a duplicate "Pinterest Downloader" link pointing to the same place
+  is redundant. Point a "Home" menu item at `/` instead if you want
+  one.
+- **Its own slug URL still technically works.** e.g.
+  `pinsdownload.org/pinterest-downloader/` loads the same content as
+  `pinsdownload.org/`. This is normal WordPress behavior for any Page
+  used as a static front page, not a bug — WordPress adds a canonical
+  tag pointing search engines at `/` so it isn't treated as duplicate
+  content. If it bothers you visually, you can rename the Page's slug
+  to `home` under its Permalink settings; it won't change anything
+  about how the homepage works.
+
+If neither of those matches what you're seeing, send a screenshot of
+exactly where the link/page shows up and that'll narrow it down fast.
 
 ## After any snippet change: purge the cache
 
