@@ -174,31 +174,6 @@ if ( ! function_exists( 'pd_icon' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pd_image_placeholder' ) ) {
-	/**
-	 * @param string $ratio_key  '16x9' | '4x5' | '1x1'
-	 */
-	function pd_image_placeholder( $ratio_key, $alt, $filename, $size ) {
-		$ratio_labels = array(
-			'16x9' => '16:9',
-			'4x5'  => '4:5',
-			'1x1'  => '1:1',
-		);
-		$ratio_label = isset( $ratio_labels[ $ratio_key ] ) ? $ratio_labels[ $ratio_key ] : $ratio_key;
-		?>
-		<!-- IMAGE PLACEHOLDER
-		     Filename: <?php echo esc_html( $filename ); ?>
-		     Recommended size: <?php echo esc_html( $size ); ?>
-		     Aspect ratio: <?php echo esc_html( $ratio_label ); ?>
-		     Replace this placeholder with the final image.
-		-->
-		<div class="pd-img-ph pd-img-ph--<?php echo esc_attr( $ratio_key ); ?>">
-			<?php pd_icon( 'image' ); ?>
-			<span><?php echo esc_html( $alt ); ?></span>
-		</div>
-		<?php
-	}
-}
 
 /*
  * FAQ, "How to Use", "Images", "Explanations", and "Features" all
@@ -326,26 +301,8 @@ get_header();
 /* ---------- Feature strip ---------- */
 .pd-strip { background: var(--pd-bg-soft); border-top: 1px solid var(--pd-border); border-bottom: 1px solid var(--pd-border); }
 .pd-strip-row { max-width: var(--pd-max); margin: 0 auto; padding: 22px 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-.pd-chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--pd-border); border-radius: 999px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; }
-.pd-chip svg { color: var(--pd-red); width: 17px; height: 17px; }
-
-/* ---------- Steps ---------- */
-.pd-steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; position: relative; margin-top: 44px; }
-.pd-steps-row::before { content: ""; position: absolute; top: 33px; left: 17%; right: 17%; height: 2px; background: linear-gradient(90deg, var(--pd-red-tint), var(--pd-border), var(--pd-red-tint)); z-index: 0; }
-.pd-step-card { position: relative; z-index: 1; background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md); padding: 30px 24px; box-shadow: var(--pd-shadow); transition: transform .25s ease, box-shadow .25s ease; }
-.pd-step-card:hover { transform: translateY(-4px); box-shadow: var(--pd-shadow-hover); }
-.pd-step-num { font-size: 13px; font-weight: 800; color: var(--pd-red); background: var(--pd-red-tint); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-.pd-step-card svg { color: var(--pd-red); margin-bottom: 10px; }
-.pd-step-card h3 { font-size: 18px; margin-bottom: 8px; }
-.pd-step-card p { font-size: 14.5px; margin: 0; }
-@media (max-width: 860px) { .pd-steps-row { grid-template-columns: 1fr; } .pd-steps-row::before { display: none; } }
-
-/* ---------- Image placeholders ---------- */
-.pd-img-ph { position: relative; border-radius: var(--pd-radius-md); border: 1.5px dashed var(--pd-border); background: repeating-linear-gradient(135deg, #fafafa, #fafafa 10px, #f4f4f4 10px, #f4f4f4 20px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--pd-text-muted); font-size: 13px; text-align: center; padding: 20px; }
-.pd-img-ph svg { width: 30px; height: 30px; opacity: .6; }
-.pd-img-ph--16x9 { aspect-ratio: 16 / 9; }
-.pd-img-ph--4x5 { aspect-ratio: 4 / 5; }
-.pd-img-ph--1x1 { aspect-ratio: 1 / 1; }
+.pd-strip .pd-gutenberg-zone { max-width: none; }
+.pd-strip .pd-gutenberg-zone p { margin: 0; text-align: center; font-weight: 600; font-size: 14px; color: var(--pd-dark); }
 
 /* ---------- Gutenberg-editable zones ----------
    Targets core block output (.wp-block-*) so anything typed or
@@ -379,101 +336,24 @@ get_header();
 .pd-gutenberg-zone .wp-block-column p:last-child { margin-bottom: 0; font-size: 14px; }
 @media (max-width: 700px) { .pd-gutenberg-zone .wp-block-columns { flex-wrap: wrap; } }
 
+/* Comparison zone: style a core Table block like the old bespoke
+   comparison table, with a horizontal-scroll wrapper on mobile. */
+.pd-gutenberg-zone .wp-block-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; margin: 0 0 18px; }
+.pd-gutenberg-zone .wp-block-table table { width: 100%; border-collapse: collapse; min-width: 560px; margin: 0; }
+.pd-gutenberg-zone .wp-block-table th, .pd-gutenberg-zone .wp-block-table td { padding: 15px 18px; text-align: left; font-size: 14.5px; border-bottom: 1px solid var(--pd-border); white-space: nowrap; }
+.pd-gutenberg-zone .wp-block-table thead th { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--pd-text-muted); }
+.pd-gutenberg-zone .wp-block-table tbody tr:last-child td { border-bottom: 0; }
+
 .pd-zone-missing { max-width: 900px; margin: 0 auto; padding: 16px 20px; border: 1px dashed var(--pd-border); border-radius: 12px; background: var(--pd-bg-soft); color: var(--pd-text-muted); font-size: 14px; text-align: center; }
 
 /* ---------- Section heading (non-split sections) ---------- */
 .pd-section-head { text-align: center; max-width: 680px; margin: 0 auto 44px; }
 .pd-section-head h2 { font-size: clamp(28px, 3.6vw, 44px); }
 
-/* ---------- Works / doesn't ---------- */
-.pd-wd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-.pd-wd-card { border-radius: var(--pd-radius-md); padding: 30px; border: 1px solid var(--pd-border); }
-.pd-wd-card--yes { background: #fff; }
-.pd-wd-card--no { background: var(--pd-bg-soft); }
-.pd-wd-card h3 { display: flex; align-items: center; gap: 10px; font-size: 18px; margin-bottom: 18px; }
-.pd-wd-card--yes h3 { color: #1a7a3c; }
-.pd-wd-card--yes h3 svg { color: #1a7a3c; }
-.pd-wd-card--no h3 { color: #a03; }
-.pd-wd-card--no h3 svg { color: #a03; }
-.pd-wd-card li { display: flex; gap: 10px; padding: 8px 0; font-size: 14.5px; color: var(--pd-text-secondary); }
-.pd-wd-card li svg { margin-top: 2px; }
-@media (max-width: 700px) { .pd-wd-grid { grid-template-columns: 1fr; } }
-
-/* ---------- Feature grid ---------- */
-.pd-feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-.pd-feature-card { padding: 28px; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; transition: transform .25s ease, box-shadow .25s ease; }
-.pd-feature-card:hover { transform: translateY(-4px); box-shadow: var(--pd-shadow-hover); }
-.pd-feature-card svg { color: var(--pd-red); margin-bottom: 12px; }
-.pd-feature-card h3 { font-size: 16.5px; margin-bottom: 6px; }
-.pd-feature-card p { font-size: 14px; margin: 0; }
-@media (max-width: 960px) { .pd-feature-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .pd-feature-grid { grid-template-columns: 1fr; } }
-
-/* ---------- Content-type grid ---------- */
-.pd-type-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-.pd-type-card { background: #fff; border: 1px solid var(--pd-border); border-radius: 16px; padding: 20px 14px; text-align: center; transition: transform .2s ease, box-shadow .2s ease; }
-.pd-type-card:hover { transform: translateY(-3px); box-shadow: var(--pd-shadow); }
-.pd-type-card svg { color: var(--pd-red); margin-bottom: 10px; }
-.pd-type-card strong { display: block; font-size: 14px; margin-bottom: 4px; }
-.pd-type-card span { display: block; font-size: 12.5px; color: var(--pd-text-muted); line-height: 1.5; }
-@media (max-width: 960px) { .pd-type-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 560px) { .pd-type-grid { grid-template-columns: repeat(2, 1fr); } }
-
-/* ---------- Tags flow ---------- */
-.pd-tags-flow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-.pd-tag-pill { background: #fff; border: 1px solid var(--pd-border); color: var(--pd-dark); border-radius: 999px; padding: 10px 20px; font-size: 14px; font-weight: 600; }
-
-/* ---------- Comparison table ---------- */
-.pd-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; }
-.pd-compare { width: 100%; border-collapse: collapse; min-width: 640px; }
-.pd-compare th, .pd-compare td { padding: 15px 18px; text-align: left; font-size: 14.5px; border-bottom: 1px solid var(--pd-border); white-space: nowrap; }
-.pd-compare thead th { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--pd-text-muted); }
-.pd-compare tbody tr:last-child td { border-bottom: 0; }
-.pd-compare td:first-child, .pd-compare th:first-child { color: var(--pd-dark); font-weight: 600; }
-.pd-compare .pd-hl { background: var(--pd-red-tint); color: var(--pd-red-dark); font-weight: 700; }
-.pd-review-note { text-align: center; font-size: 13px; color: var(--pd-text-muted); margin-top: 16px; }
-
-/* ---------- Devices ---------- */
-.pd-device-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
-.pd-device-chip { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--pd-border); border-radius: 14px; padding: 15px 22px; font-size: 14px; }
-.pd-device-chip svg { color: var(--pd-red); }
-.pd-device-chip strong { display: block; }
-.pd-device-chip span { color: var(--pd-text-muted); font-size: 12.5px; }
-
 /* ---------- Info card (safety / legal) ---------- */
 .pd-info-card { max-width: 800px; margin: 0 auto; text-align: center; background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-lg); padding: 42px; box-shadow: var(--pd-shadow); }
 .pd-info-card .pd-eyebrow-icon { margin: 0 auto 18px; }
-
-/* ---------- Trust badges ---------- */
-.pd-badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.pd-badge-card { text-align: center; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md); padding: 26px 20px; background: #fff; text-decoration: none; display: block; transition: box-shadow .2s ease; }
-.pd-badge-card:hover { box-shadow: var(--pd-shadow); }
-.pd-badge-card svg { color: var(--pd-red); margin-bottom: 10px; }
-.pd-badge-card strong { display: block; color: var(--pd-dark); font-size: 14.5px; margin-bottom: 8px; }
-.pd-badge-status { display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--pd-text-muted); background: var(--pd-bg-soft); padding: 4px 12px; border-radius: 999px; }
-@media (max-width: 700px) { .pd-badge-grid { grid-template-columns: 1fr; } }
-
-/* ---------- Testimonial placeholders ---------- */
-.pd-testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.pd-testi-card { border: 1.5px dashed var(--pd-border); border-radius: var(--pd-radius-md); padding: 28px; text-align: center; color: var(--pd-text-muted); background: var(--pd-bg-soft); }
-.pd-testi-card svg { color: var(--pd-border); margin-bottom: 12px; }
-.pd-testi-card p { font-size: 14px; margin: 0; font-style: italic; }
-@media (max-width: 860px) { .pd-testi-grid { grid-template-columns: 1fr; } }
-
-/* ---------- Timeline ---------- */
-.pd-timeline { max-width: 680px; margin: 0 auto; border-left: 2px solid var(--pd-red-tint); padding-left: 26px; }
-.pd-timeline-item { position: relative; padding-bottom: 4px; }
-.pd-timeline-item::before { content: ""; position: absolute; left: -31.5px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--pd-red); }
-.pd-timeline-item p { margin: 0; font-size: 15px; }
-.pd-timeline-item strong { color: var(--pd-dark); }
-
-/* ---------- Card rows (guides / other tools) ---------- */
-.pd-card-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.pd-placeholder-card { border: 1px solid var(--pd-border); border-radius: 16px; padding: 22px; background: #fff; }
-.pd-placeholder-card strong { display: block; font-size: 15px; margin-bottom: 6px; }
-.pd-placeholder-card span { font-size: 12.5px; color: var(--pd-text-muted); }
-.pd-placeholder-card--current { border-color: var(--pd-red); background: var(--pd-red-tint); }
-@media (max-width: 860px) { .pd-card-row { grid-template-columns: 1fr; } }
+.pd-info-card .pd-gutenberg-zone { text-align: left; }
 
 /* ---------- FAQ accordion ---------- */
 .pd-faq-list { max-width: 820px; margin: 0 auto; border-top: 1px solid var(--pd-border); }
@@ -486,13 +366,6 @@ get_header();
 .pd-faq-item[data-open="true"] .pd-faq-a { grid-template-rows: 1fr; }
 .pd-faq-a p { padding: 0 4px 21px; margin: 0; font-size: 14.5px; }
 @media (prefers-reduced-motion: reduce) { .pd-faq-a { transition: none; } }
-
-/* ---------- Quick answers ---------- */
-.pd-qa-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-.pd-qa-card { background: #fff; border: 1px solid var(--pd-border); border-radius: 14px; padding: 18px 20px; }
-.pd-qa-card strong { display: block; font-size: 14.5px; margin-bottom: 4px; }
-.pd-qa-card span { font-size: 13.5px; color: var(--pd-text-muted); }
-@media (max-width: 700px) { .pd-qa-grid { grid-template-columns: 1fr; } }
 
 /* ---------- Final CTA ---------- */
 .pd-cta { text-align: center; padding: clamp(60px, 8vw, 100px) 0; }
@@ -615,51 +488,25 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     2. Supported Formats & Quality Strip
+	     2. GUTENBERG ZONE — "Feature Strip"
 	     ===================================================== -->
 	<div class="pd-strip">
 		<div class="pd-strip-row">
-			<span class="pd-chip"><?php pd_icon( 'spark' ); ?> HD · 2K · 4K quality</span>
-			<span class="pd-chip"><?php pd_icon( 'slash' ); ?> No watermark</span>
-			<span class="pd-chip"><?php pd_icon( 'film' ); ?> MP4, JPG, PNG, GIF supported</span>
-			<span class="pd-chip"><?php pd_icon( 'globe' ); ?> Works on phone, tablet, and computer</span>
+			<?php pd_render_content_zone( 'pd-feature-strip' ); ?>
 		</div>
 	</div>
 
 	<!-- =====================================================
-	     3. How to Download a Pinterest Video
+	     3. GUTENBERG ZONE — "Quick Steps"
+	     Seeded as 3 Columns (Heading+Paragraph each), which reuses
+	     the same card styling as the "Features" zone below.
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>How to Download a Pinterest Video</h2>
-				<p>A Pinterest video downloader works in three steps. Open Pinterest and find the video you want. Tap the share icon and choose "Copy Link." Paste the link above and tap Download.</p>
 			</div>
-			<div class="pd-steps-row">
-				<div class="pd-step-card">
-					<div class="pd-step-num">01</div>
-					<?php pd_icon( 'search' ); ?>
-					<h3>Open Pinterest</h3>
-					<p>Open Pinterest and find the video you want.</p>
-				</div>
-				<div class="pd-step-card">
-					<div class="pd-step-num">02</div>
-					<?php pd_icon( 'copy' ); ?>
-					<h3>Copy Link</h3>
-					<p>Tap the share icon and choose "Copy Link."</p>
-				</div>
-				<div class="pd-step-card">
-					<div class="pd-step-num">03</div>
-					<?php pd_icon( 'download' ); ?>
-					<h3>Paste &amp; Download</h3>
-					<p>Paste the link above and tap Download.</p>
-				</div>
-			</div>
-			<p style="text-align:center; margin-top:30px;">Your video saves straight to your device. No app, no sign up.</p>
-
-			<div style="margin-top:44px; max-width:900px; margin-left:auto; margin-right:auto;">
-				<?php pd_image_placeholder( '16x9', 'Pinterest download tutorial screenshot', 'pinterest-download-tutorial.webp', '1600x900px' ); ?>
-			</div>
+			<?php pd_render_content_zone( 'pd-quick-steps' ); ?>
 		</div>
 	</section>
 
@@ -698,34 +545,14 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     8. What This Tool Can and Can't Download
+	     8. GUTENBERG ZONE — "Works and Doesnt"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>What This Tool Can and Can't Download</h2>
-				<p>PinsDownload works with any public Pinterest link. It can't open anything that needs a Pinterest login.</p>
 			</div>
-			<div class="pd-wd-grid">
-				<div class="pd-wd-card pd-wd-card--yes">
-					<h3><?php pd_icon( 'check' ); ?> What Works</h3>
-					<ul>
-						<li><?php pd_icon( 'check' ); ?> Public pins and pin.it links</li>
-						<li><?php pd_icon( 'check' ); ?> Videos, images, GIFs, stories, carousels</li>
-						<li><?php pd_icon( 'check' ); ?> Public boards and profiles</li>
-						<li><?php pd_icon( 'check' ); ?> Idea Pins and Ideas pages</li>
-					</ul>
-				</div>
-				<div class="pd-wd-card pd-wd-card--no">
-					<h3><?php pd_icon( 'cross' ); ?> What Doesn't Work</h3>
-					<ul>
-						<li><?php pd_icon( 'cross' ); ?> Private or login-only pins</li>
-						<li><?php pd_icon( 'cross' ); ?> Deleted or removed pins</li>
-						<li><?php pd_icon( 'cross' ); ?> Invitation-only boards</li>
-						<li><?php pd_icon( 'cross' ); ?> Content you don't have rights to save</li>
-					</ul>
-				</div>
-			</div>
+			<?php pd_render_content_zone( 'pd-works-doesnt' ); ?>
 		</div>
 	</section>
 
@@ -748,26 +575,14 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     10. What Else You Can Download From Pinterest
+	     10. GUTENBERG ZONE — "Content Types"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>What Else You Can Download From Pinterest</h2>
-				<p>PinsDownload isn't only for videos. It handles every kind of Pinterest content.</p>
 			</div>
-			<div class="pd-type-grid">
-				<div class="pd-type-card"><?php pd_icon( 'image' ); ?><strong>Images and photos</strong><span>save any pin in full resolution.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'gif' ); ?><strong>GIFs</strong><span>download animated pins without losing the loop.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'film' ); ?><strong>Reels and short videos</strong><span>grab Pinterest's short-form clips.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'layers' ); ?><strong>Stories and Idea Pins</strong><span>save every slide of a multi-page pin.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'grid' ); ?><strong>Carousels</strong><span>download every image or video in a multi-item pin.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'grid' ); ?><strong>Boards</strong><span>save up to 100 pins from a public board at once, or grab the whole thing as a ZIP file.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'user' ); ?><strong>Profiles</strong><span>download every public pin from a Pinterest profile.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'bulb' ); ?><strong>Ideas pages</strong><span>save content straight from a Pinterest Ideas collection.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'message' ); ?><strong>Answers pages</strong><span>download pins shared on a Pinterest Answers page.</span></div>
-				<div class="pd-type-card"><?php pd_icon( 'link' ); ?><strong>Shared pin links</strong><span>paste any multi-pin share link and download everything in it.</span></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-content-types' ); ?>
 		</div>
 	</section>
 
@@ -786,133 +601,78 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     13. How This Compares to Other Downloaders
+	     13. GUTENBERG ZONE — "Comparison"
+	     Seeded with a Table block. REVIEW REQUIRED: section marked
+	     DUMMY in the source copy — verify every claim before publishing.
 	     ===================================================== -->
-	<!-- REVIEW REQUIRED:
-	     Section marked DUMMY in the source copy. Verify every
-	     comparison claim against the live tool before publishing.
-	-->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>How This Compares to Other Downloaders</h2>
-				<p>PinsDownload is built to beat the basics that most Pinterest downloaders get wrong.</p>
 			</div>
-			<div class="pd-table-scroll">
-				<table class="pd-compare">
-					<thead>
-						<tr>
-							<th></th>
-							<th class="pd-hl">PinsDownload</th>
-							<th>Typical Free Downloaders</th>
-							<th>Downloader Apps</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr><td>Quality</td><td class="pd-hl">Up to 4K</td><td>Often capped at 720p</td><td>Sometimes compressed</td></tr>
-						<tr><td>Watermark</td><td class="pd-hl">None</td><td>Usually none</td><td>Often adds app logo</td></tr>
-						<tr><td>Login needed</td><td class="pd-hl">No</td><td>No</td><td>Often yes</td></tr>
-						<tr><td>Speed</td><td class="pd-hl">Seconds</td><td>Slow, ad-heavy</td><td>Medium</td></tr>
-						<tr><td>Bulk/ZIP download</td><td class="pd-hl">Yes, up to 100 pins</td><td>Rare</td><td>Rare</td></tr>
-						<tr><td>Privacy</td><td class="pd-hl">Nothing stored</td><td>Varies</td><td>Often collects data</td></tr>
-					</tbody>
-				</table>
-			</div>
-			<p class="pd-review-note"><em>Every row in the PinsDownload column must be true and tested before this goes live.</em></p>
+			<?php pd_render_content_zone( 'pd-comparison' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     14. Works on Every Device
+	     14. GUTENBERG ZONE — "Devices"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Works on Every Device</h2>
-				<p>PinsDownload runs in a browser, so it works on almost anything with an internet connection.</p>
 			</div>
-			<div class="pd-device-row">
-				<div class="pd-device-chip"><?php pd_icon( 'device-phone' ); ?><span><strong>Android</strong> Chrome, Firefox</span></div>
-				<div class="pd-device-chip"><?php pd_icon( 'device-phone' ); ?><span><strong>iPhone / iPad</strong> Safari, Chrome</span></div>
-				<div class="pd-device-chip"><?php pd_icon( 'device-monitor' ); ?><span><strong>Windows</strong> Chrome, Edge</span></div>
-				<div class="pd-device-chip"><?php pd_icon( 'device-monitor' ); ?><span><strong>Mac</strong> Safari, Chrome</span></div>
-				<div class="pd-device-chip"><?php pd_icon( 'device-terminal' ); ?><span><strong>Linux</strong> Firefox, Chrome</span></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-devices' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     15. Is This Safe to Use?
+	     15. GUTENBERG ZONE — "Safety"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-info-card">
 				<div class="pd-eyebrow-icon"><?php pd_icon( 'shield' ); ?></div>
 				<h2>Is This Safe to Use?</h2>
-				<p>Yes. We never ask for your Pinterest username or password. You paste a public link, we fetch the file, and nothing you download is stored on our servers afterward. We use standard analytics to see which pages are useful, the same as most websites, but your download history stays private.</p>
+				<?php pd_render_content_zone( 'pd-safety' ); ?>
 			</div>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     16. Trust Badges
-	     ===================================================== -->
-	<!-- TRUST BADGE PLACEHOLDER
+	     16. GUTENBERG ZONE — "Trust Badges"
 	     Links already point at the real domain. They'll show "no
 	     data yet" until pinsdownload.org has been live and crawled
 	     for a few weeks — that's expected, not a bug.
-	-->
+	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Check Our Current Reputation</h2>
 			</div>
-			<div class="pd-badge-grid">
-				<a class="pd-badge-card" href="https://transparencyreport.google.com/safe-browsing/search?url=pinsdownload.org" target="_blank" rel="noopener noreferrer">
-					<?php pd_icon( 'shield' ); ?>
-					<strong>Google Safe Browsing</strong>
-					<span class="pd-badge-status">Verification pending</span>
-				</a>
-				<a class="pd-badge-card" href="https://safeweb.norton.com/report?url=pinsdownload.org" target="_blank" rel="noopener noreferrer">
-					<?php pd_icon( 'shield' ); ?>
-					<strong>Norton Safe Web</strong>
-					<span class="pd-badge-status">Verification pending</span>
-				</a>
-				<a class="pd-badge-card" href="https://sitecheck.sucuri.net/results/pinsdownload.org" target="_blank" rel="noopener noreferrer">
-					<?php pd_icon( 'shield' ); ?>
-					<strong>Sucuri Scanner</strong>
-					<span class="pd-badge-status">Verification pending</span>
-				</a>
-			</div>
+			<?php pd_render_content_zone( 'pd-trust-badges' ); ?>
 		</div>
 	</section>
 
 	<!-- 17. Is It Legal to Download Pinterest Videos? — content now lives in the "Explanations" zone above. -->
 
 	<!-- =====================================================
-	     18. What Users Say
+	     18. GUTENBERG ZONE — "Testimonials"
+	     Seeded EMPTY on purpose — do not add fake names, ratings,
+	     dates, or quotes here. Add real reviews as Paragraph/Quote
+	     blocks once available.
 	     ===================================================== -->
-	<!-- TESTIMONIAL PLACEHOLDER
-	     Section marked DUMMY in the source copy. Do not publish
-	     fake names, ratings, dates, or quotes here — replace these
-	     three cards with 5-10 real reviews once available, or
-	     remove the section entirely until then.
-	-->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>What Users Say</h2>
 			</div>
-			<div class="pd-testi-grid">
-				<div class="pd-testi-card"><?php pd_icon( 'quote' ); ?><p>Real user review will appear here.</p></div>
-				<div class="pd-testi-card"><?php pd_icon( 'quote' ); ?><p>Real user review will appear here.</p></div>
-				<div class="pd-testi-card"><?php pd_icon( 'quote' ); ?><p>Real user review will appear here.</p></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-testimonials' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     19. What's New
+	     19. GUTENBERG ZONE — "Whats New"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
@@ -920,30 +680,19 @@ get_header();
 				<div class="pd-eyebrow-icon" style="margin-left:auto;margin-right:auto;"><?php pd_icon( 'clock' ); ?></div>
 				<h2>What's New</h2>
 			</div>
-			<div class="pd-timeline">
-				<div class="pd-timeline-item">
-					<p><strong>Aug 2026 — Launched:</strong> PinsDownload is live, with video, image, GIF, story, carousel, board, and profile downloads all working from day one.</p>
-				</div>
-			</div>
+			<?php pd_render_content_zone( 'pd-whats-new' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     20. Guides & Tips
+	     20. GUTENBERG ZONE — "Guides"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Guides &amp; Tips</h2>
 			</div>
-			<div class="pd-card-row">
-				<!-- ARTICLE URL PLACEHOLDER: link once this guide is published -->
-				<div class="pd-placeholder-card"><strong>How to Download a Full Pinterest Board</strong><span>Guide not published yet</span></div>
-				<!-- ARTICLE URL PLACEHOLDER: link once this guide is published -->
-				<div class="pd-placeholder-card"><strong>Is Downloading Pinterest Content Legal?</strong><span>Guide not published yet</span></div>
-				<!-- ARTICLE URL PLACEHOLDER: link once this guide is published -->
-				<div class="pd-placeholder-card"><strong>PinsDownload vs Other Downloaders</strong><span>Guide not published yet</span></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-guides' ); ?>
 		</div>
 	</section>
 
@@ -968,51 +717,38 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     22. Quick Answers
+	     22. GUTENBERG ZONE — "Quick Answers"
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Quick Answers</h2>
 			</div>
-			<div class="pd-qa-grid">
-				<div class="pd-qa-card"><strong>Can I download Pinterest GIFs?</strong><span>Yes, paste the GIF's link the same way as a video.</span></div>
-				<div class="pd-qa-card"><strong>Where do my downloads go?</strong><span>Your device's default Downloads folder, unless you choose another location.</span></div>
-				<div class="pd-qa-card"><strong>Does this cost anything?</strong><span>No, it's free with no limits on single downloads.</span></div>
-				<div class="pd-qa-card"><strong>Is this the same as a "pin saver"?</strong><span>Yes. PinsDownload works as a Pinterest saver too, paste any pin link and save it the same way.</span></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-quick-answers' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     23. Other Tools
+	     23. GUTENBERG ZONE — "Other Tools"
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Other Tools</h2>
 			</div>
-			<div class="pd-card-row">
-				<div class="pd-placeholder-card pd-placeholder-card--current"><strong>Pinterest Video Downloader</strong><span>You're here</span></div>
-				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
-				<div class="pd-placeholder-card"><strong>Pinterest Image Downloader</strong><span>Page not published yet</span></div>
-				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
-				<div class="pd-placeholder-card"><strong>Pinterest GIF Downloader</strong><span>Page not published yet</span></div>
-				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
-				<div class="pd-placeholder-card"><strong>Pinterest Story Downloader</strong><span>Page not published yet</span></div>
-				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
-				<div class="pd-placeholder-card"><strong>Pinterest Board Downloader</strong><span>Page not published yet</span></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-other-tools' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     FINAL CTA
+	     FINAL CTA — heading/button stay fixed (the button's
+	     scroll-to-tool behavior needs to always exist); the
+	     supporting line is the "Final CTA" GUTENBERG ZONE.
 	     ===================================================== -->
 	<section class="pd-cta pd-band--soft">
 		<div class="pd-container pd-reveal">
 			<h2>Ready to Download?</h2>
-			<p>Paste a Pinterest link above and get your file in seconds.</p>
+			<?php pd_render_content_zone( 'pd-final-cta' ); ?>
 			<a href="#pdl-tool" class="pd-btn-primary pd-scroll-top" id="pd-cta-scroll">
 				<?php pd_icon( 'arrow' ); ?> Back to the Downloader
 			</a>

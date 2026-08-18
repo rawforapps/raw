@@ -13,13 +13,13 @@ Three deliverables here, pick based on what you're doing:
   system, and this same downloader tool embedded live in the hero —
   not a placeholder. See "The homepage template" below.
 - **`pinsdownload-editable-sections.php`** — a companion WPCode PHP
-  Snippet that pairs with `front-page.php`. Makes five specific parts
-  of the homepage (How to Use, Images, Explanations, Features, FAQ)
-  editable — text, images, adding/removing items — **directly on your
-  existing homepage Page**, the same one you already open under Pages
-  in wp-admin. No separate admin screen to go find. Everything else
-  on the page (hero + tool, header, footer, and every other structured
-  section) stays fixed. See "Editing content in Gutenberg" below.
+  Snippet that pairs with `front-page.php`. Makes essentially every
+  content section of the homepage editable — text, images, links,
+  adding/removing items — **directly on your existing homepage Page**,
+  the same one you already open under Pages in wp-admin. No separate
+  admin screen to go find. Only the header, the hero heading + the
+  tool itself, and the footer stay fixed (see below for why). See
+  "Editing content in Gutenberg" below.
 
 All three files are self-contained: no theme dependency, no REST API,
 nothing else to install beyond what's described here.
@@ -107,9 +107,9 @@ owns the content between them.
 3. In wp-admin: **Settings → Reading → Your homepage displays** must
    be "A static page", with a real Page chosen (Pages → Add New if you
    don't have one yet — title doesn't matter). That Page's own content
-   is where the five editable zones below live; `front-page.php`
-   overrides everything else about how that Page looks, but still
-   reads its content for those five zones specifically.
+   is where the editable zones below live; `front-page.php` overrides
+   everything else about how that Page looks, but still reads its
+   content for those zones specifically.
 4. Open that Page in wp-admin and reload it once. If it's completely
    empty, the snippet fills it in automatically with starter content
    the first time it loads after being installed — refresh if you
@@ -119,13 +119,13 @@ owns the content between them.
 **What's on it:**
 
 The full PinsDownload homepage copy from `Homepage_Content_PinsDownload.md`
-— hero, format/quality strip, three-step explainer, what works/
-doesn't, content-type grid, comparison table, device compatibility,
-safety, trust badges, testimonials, changelog, guides, quick answers,
-other tools, and a final CTA that scrolls back to the tool — plus five
-sections (How to Use, Images, Explanations, Features, FAQ) that pull
-their content from wp-admin instead of being hard-coded. See "Editing
-content in Gutenberg" below for what's editable and how.
+— hero, feature strip, three-step explainer, how-to guides, what
+works/doesn't, content-type grid, comparison table, device
+compatibility, safety, trust badges, testimonials, changelog, guides,
+FAQ, quick answers, other tools, and a final CTA that scrolls back to
+the tool. Nearly every one of those pulls its content from wp-admin
+instead of being hard-coded — see "Editing content in Gutenberg"
+below for the full list of what's editable and how.
 
 - The downloader tool itself, embedded directly in the hero
   (`id="pdl-tool"`) — the same pintsave.net-backed logic as
@@ -135,54 +135,70 @@ content in Gutenberg" below for what's editable and how.
   accents used sparingly, cards, a feather-style inline SVG icon set,
   an accessible FAQ accordion, scroll-reveal — all in plain CSS/JS, no
   framework, no external library). The same tokens style native
-  Gutenberg block output (`.wp-block-*`) inside the editable zones, so
-  content typed in wp-admin matches the rest of the page automatically.
+  Gutenberg block output (`.wp-block-*`, including Columns and Table
+  blocks) inside the editable zones, so content typed in wp-admin
+  matches the rest of the page automatically.
 - `SoftwareApplication`, `HowTo`, and `FAQPage` JSON-LD schema. The
   FAQ schema is generated from the same Heading/Paragraph pairs the
   FAQ zone displays — edit the FAQ in wp-admin and the schema updates
   with it, no separate place to keep in sync.
 
-**Left as placeholders, on purpose (per the content doc's own DUMMY
-notes) — fill these in before launch:**
+**Content that needs your attention before launch (per the source
+copy's own DUMMY notes — these are seeded honestly, not filled with
+fake data):**
 
-- **Tutorial screenshot** for the fixed three-step explainer section
-  — the placeholder `<div>` carries an HTML comment with the exact
-  filename, pixel size, and aspect ratio to use when you swap it in.
-  The App/Computer/iPhone/Android guide screenshots now live inside
-  the "How to Use" Gutenberg zone instead (see below) — add those as
-  ordinary Image blocks in wp-admin.
-- **Testimonials** (§18) — the source copy's three reviews are
-  fabricated/DUMMY. This template does **not** publish them; it shows
-  three neutral "Real user review will appear here" cards instead.
-  Replace with 5–10 genuine reviews, or delete the section.
-- **Trust badges** (§16) — real Google Safe Browsing / Norton / Sucuri
-  links, already wired to `pinsdownload.org`, shown with a
-  "Verification pending" status until the domain has scan history.
-- **Guides & Tips / Other Tools** (§20, §23) — non-clickable cards
-  until those article/tool pages actually exist; each has an `<!--
-  ARTICLE URL PLACEHOLDER -->` comment marking where to add the link.
-- **Comparison table** (§13) — flagged `REVIEW REQUIRED` in a comment;
-  every claim needs testing against the live tool before publishing.
+- **Tutorial screenshots** — every guide (Quick Steps, and each of the
+  App/Computer/iPhone/Android guides inside "How to Use") is seeded
+  with an instructional paragraph telling you where to add an Image
+  block; none are pre-filled with a real screenshot.
+- **Testimonials** — the source copy's three reviews are
+  fabricated/DUMMY. The seeded "Testimonials" zone is intentionally
+  left with just an instructional note, not fake names/ratings/quotes.
+  Add 5–10 genuine reviews as Paragraph or Quote blocks once you have
+  them, or leave it empty.
+- **Trust badges** — real Google Safe Browsing / Norton / Sucuri
+  links, already wired to `pinsdownload.org`, with a note that they'll
+  show "no data yet" until the domain has scan history.
+- **Guides / Other Tools** — listed as "not published yet"; once those
+  pages are live, edit the list items into real links.
+- **Comparison table** — seeded as an editable Table block, marked
+  "REVIEW REQUIRED" in the paragraph underneath; every claim needs
+  testing against the live tool before publishing.
 
 ## Editing content in Gutenberg
 
 There is **no separate admin screen** for this. You edit the same
 homepage Page you already have open in wp-admin (Pages → your
 homepage → Edit) — the normal block editor, exactly as it looks for
-any other Page. `front-page.php` reads that Page's own content, but
-only for five specific zones; everything else about how that Page
-renders (header, hero, tool, footer, and every other section) is
-fixed in the template regardless of what's on the Page.
+any other Page. `front-page.php` reads that Page's own content and
+splits it into zones; everything about how that Page *renders*
+(header, hero, tool, footer, section order/spacing/backgrounds) is
+fixed in the template regardless of what's on the Page — only the
+content inside each zone is yours to edit.
 
-The five zones are marked by **Heading blocks (H2)** with these exact
-names, typed as ordinary content on the page, in any order you like:
+Zones are marked by **Heading blocks (H2)** with these exact names,
+typed as ordinary content on the page, in any order you like:
 
 ```
+Feature Strip
+Quick Steps
 How to Use
 Images
-Explanations
+Works and Doesnt
 Features
+Content Types
+Explanations
+Comparison
+Devices
+Safety
+Trust Badges
+Testimonials
+Whats New
+Guides
 FAQ
+Quick Answers
+Other Tools
+Final CTA
 ```
 
 Whatever you put underneath one of these headings — and above the
@@ -190,34 +206,49 @@ next one — becomes that section's content. The marker heading itself
 is never shown on the live page (front-page.php prints its own
 visible heading for each section); it only tells the code where one
 zone ends and the next begins. The first time the page loads after
-installing the snippet, if it's completely empty, all five markers
-and their starter content get filled in automatically — reload the
-page editor after installing if you don't see this yet.
+installing the snippet, if it's completely empty, every marker and
+its starter content gets filled in automatically — reload the page
+editor after installing if you don't see this yet.
 
 How to structure the content under each marker so it renders
 correctly:
 
 | Zone (H2 marker) | Shows up as | How to structure it underneath |
 |---|---|---|
-| **How to Use** | A section right after the 3-step explainer | A Heading (H3) block per guide (e.g. "Downloading on a Computer"), then a numbered List block, then optionally an Image block for that guide's screenshot. Repeat per guide. Add, remove, or reorder freely. |
-| **Images** | A standalone gallery section after "How to Use" | Empty by default — add Image or Gallery blocks for product shots or extra screenshots. Leave it empty and the section just won't show anything extra. |
-| **Explanations** | Replaces the old "What Is / What For / Legal" sections | A Heading (H3) block per topic, then a Paragraph block under it. Add new topics the same way. |
-| **Features** | The "Why People Use This Tool" grid | Two rows of a **Columns** block, each column holding a Heading (H3) + Paragraph — that's what turns into the card grid. Add a column (or a whole new Columns block) for a new feature; the card styling applies automatically. |
-| **FAQ** | The FAQ accordion | **Important:** each question needs a Heading (H3) block immediately followed by a Paragraph block (its answer) — that exact Heading→Paragraph pairing is what becomes one accordion item **and** one entry in the FAQPage schema. Anything else (a List, an Image, two Paragraphs in a row) is ignored by the accordion, so keep to that pattern. Add/remove/reorder pairs freely. |
+| **Feature Strip** | The thin strip right under the tool | A single Paragraph block. |
+| **Quick Steps** | The 3-step "How to Download a Pinterest Video" cards | One row of a **Columns** block (3 columns), each with a Heading (H3) + Paragraph, then a closing Paragraph and an image-block hint for the tutorial screenshot. |
+| **How to Use** | The App/Computer/iPhone/Android guides | A Heading (H3) block per guide, then a numbered List block, then optionally an Image block for that guide's screenshot. Repeat per guide. Add, remove, or reorder freely. |
+| **Images** | A standalone gallery section after "How to Use" | Empty by default — add Image or Gallery blocks. Leave it empty and the section just won't show anything extra. |
+| **Works and Doesnt** | "What This Tool Can and Can't Download" | A Heading (H3) "What Works" + a List, then a Heading (H3) "What Doesn't Work" + a List. |
+| **Features** | The "Why People Use This Tool" grid | Two rows of a **Columns** block, each column holding a Heading (H3) + Paragraph — that's what turns into the card grid. |
+| **Content Types** | "What Else You Can Download" | A single (bulleted) List block, one item per content type. |
+| **Explanations** | "What Is / What For / Legal" | A Heading (H3) block per topic, then a Paragraph under it. |
+| **Comparison** | The comparison table | A **Table** block (first row = header row), plus a closing Paragraph for the review note. |
+| **Devices** | "Works on Every Device" | A single List block, one item per device/browser line. |
+| **Safety** | "Is This Safe to Use?" | A single Paragraph block. |
+| **Trust Badges** | "Check Our Current Reputation" | A Paragraph, then a List with a link per badge. |
+| **Testimonials** | "What Users Say" | Empty by default. Add real reviews as Paragraph or Quote blocks once available — never fabricate names, ratings, or quotes. |
+| **Whats New** | The changelog line | A single Paragraph block — add a new one at the top each time you ship something. |
+| **Guides** | "Guides & Tips" | A single List block, one item per guide (turn into a real link once the guide is published). |
+| **FAQ** | The FAQ accordion | **Important:** each question needs a Heading (H3) block immediately followed by a Paragraph block (its answer) — that exact Heading→Paragraph pairing is what becomes one accordion item **and** one entry in the FAQPage schema. Anything else (a List, an Image, two Paragraphs in a row) is ignored by the accordion. |
+| **Quick Answers** | "Quick Answers" | Same Heading (H3) + Paragraph pattern as Explanations, one pair per question. |
+| **Other Tools** | "Other Tools" | A single List block, one item per tool (turn into a real link once that tool page is published). |
+| **Final CTA** | The supporting line under "Ready to Download?" | A single Paragraph block. The heading and the "Back to the Downloader" button stay fixed either way. |
 
 Note the marker headings are **H2** and everything under them is
-**H3** — that's how the code tells "this is a new zone" apart from
-"this is just a subheading inside the current zone."
+**H3** (or a List/Table/Columns/Image block) — that's how the code
+tells "this is a new zone" apart from "this is just a subheading
+inside the current zone."
 
-Everything **not** in that list — the hero and tool, header, footer,
-feature strip, works/doesn't cards, content-type grid, comparison
-table, device row, safety card, trust badges, testimonials, timeline,
-guides/other-tools cards, quick answers, and the final CTA — is
-intentionally fixed in `front-page.php` and not editable from
-wp-admin. Those are either tied to the tool itself, or built as
-precise custom components (accordions, tables, badge grids) where
-open-ended editing risks breaking the layout rather than just
-updating copy. Say the word if you want any of those opened up too.
+**Still fixed, not editable from wp-admin** — and why: the site
+header and footer (owned by your theme); the Hero's eyebrow, H1, and
+subtitle (a page should only have one H1, and it's tightly bound to
+the tool right under it); the downloader tool itself (`id="pdl-tool"`
+— it's a working form and PHP logic, not text content); the FAQ
+accordion's open/close mechanics (its questions and answers *are*
+editable, via the FAQ zone above — just not the click-to-expand
+behavior itself); and the final CTA's scroll-to-tool button. Say the
+word if you want any of those opened up too.
 
 ## "Why does this page still show up as its own link?"
 
