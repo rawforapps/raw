@@ -200,20 +200,38 @@ if ( ! function_exists( 'pd_image_placeholder' ) ) {
 	}
 }
 
-$pd_faq = array(
-	array( 'Is PinsDownload safe to use?', 'Yes. We never ask for your Pinterest login, and we don\'t store the files you download.' ),
-	array( 'Is it legal to download Pinterest videos?', 'Downloading for personal use is fine. Reposting someone else\'s work without permission is not.' ),
-	array( 'Do I need to log in to my Pinterest account?', 'No. PinsDownload only works with public links, so no login is needed.' ),
-	array( 'What video and image formats are supported?', 'Videos save as MP4. Images save as JPG or PNG. GIFs keep their original animation.' ),
-	array( 'Does this tool save my downloaded content?', 'No. We fetch the file and send it straight to you. Nothing is kept on our servers.' ),
-	array( 'Can I download Pinterest videos without a watermark?', 'Yes. Every download matches the original Pinterest file, with no watermark added.' ),
-	array( 'Is there a limit on how many videos I can download?', 'No daily limit for single pins. Board and profile downloads are capped at 100 pins per request.' ),
-	array( 'Does this work on iPhone and Android?', 'Yes. PinsDownload runs in your browser, so it works on iPhone, Android, and desktop.' ),
-	array( 'Can I download a full Pinterest board or profile?', 'Yes. Paste the board or profile link, then choose to download items one by one or all at once as a ZIP.' ),
-	array( 'Can I download private or deleted pins?', 'No. PinsDownload only works with public, active pins.' ),
-	array( 'What should I do if a download fails?', 'Check that the link is public and still active. If it still fails, try copying the link again from Pinterest.' ),
-	array( 'Will the video lose quality after downloading?', 'No. PinsDownload saves the file at the same resolution Pinterest provides, with no extra compression.' ),
-);
+/*
+ * FAQ, "How to Use", "Images", "Explanations", and "Features" all
+ * come from the Homepage Sections custom post type registered in
+ * embed/pinsdownload-editable-sections.php (must be active alongside
+ * this file — as its own WPCode PHP snippet, or pasted into an
+ * mu-plugin). It provides pd_render_content_zone(), pd_render_faq_zone(),
+ * and pd_get_faq_pairs() used throughout this template. Everything
+ * else on this page (hero+tool, strip, works/doesn't, comparison,
+ * devices, safety, trust badges, testimonials, timeline, guides,
+ * quick answers, other tools, final CTA) is intentionally hard-coded
+ * here, not editable from wp-admin — see that file's header comment
+ * for why.
+ */
+if ( ! function_exists( 'pd_render_content_zone' ) ) {
+	function pd_render_content_zone( $slug ) {
+		if ( current_user_can( 'edit_posts' ) ) {
+			echo '<p class="pd-zone-missing">Editable Sections plugin/snippet not active — activate embed/pinsdownload-editable-sections.php to make "' . esc_html( $slug ) . '" editable.</p>';
+		}
+	}
+}
+if ( ! function_exists( 'pd_render_faq_zone' ) ) {
+	function pd_render_faq_zone( $slug = 'pd-faq' ) {
+		if ( current_user_can( 'edit_posts' ) ) {
+			echo '<p class="pd-zone-missing">Editable Sections plugin/snippet not active — activate embed/pinsdownload-editable-sections.php to manage the FAQ.</p>';
+		}
+	}
+}
+if ( ! function_exists( 'pd_get_faq_pairs' ) ) {
+	function pd_get_faq_pairs( $slug = 'pd-faq' ) {
+		return array();
+	}
+}
 
 get_header();
 ?>
@@ -329,16 +347,39 @@ get_header();
 .pd-img-ph--4x5 { aspect-ratio: 4 / 5; }
 .pd-img-ph--1x1 { aspect-ratio: 1 / 1; }
 
-/* ---------- Split layout ---------- */
-.pd-split { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; align-items: center; }
-.pd-split--reverse .pd-split__text { order: 2; }
-.pd-split--reverse .pd-split__media { order: 1; }
-.pd-split h2 { font-size: clamp(26px, 3.4vw, 38px); }
-.pd-steps-list { margin: 18px 0; }
-.pd-steps-list li { display: flex; gap: 12px; padding: 9px 0; font-size: 15px; color: var(--pd-text-secondary); border-bottom: 1px solid var(--pd-border); }
-.pd-steps-list li:last-child { border-bottom: 0; }
-.pd-steps-list .pd-step-dot { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--pd-red-tint); color: var(--pd-red); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-@media (max-width: 860px) { .pd-split { grid-template-columns: 1fr; gap: 30px; } .pd-split--reverse .pd-split__text, .pd-split--reverse .pd-split__media { order: initial; } }
+/* ---------- Gutenberg-editable zones ----------
+   Targets core block output (.wp-block-*) so anything typed or
+   uploaded in wp-admin -> Homepage Sections picks up the same
+   design tokens automatically, without needing exact markup. */
+.pd-gutenberg-zone { max-width: 900px; margin: 0 auto; }
+.pd-gutenberg-zone > *:first-child { margin-top: 0; }
+.pd-gutenberg-zone h2, .pd-gutenberg-zone h3, .pd-gutenberg-zone h4,
+.pd-gutenberg-zone .wp-block-heading { color: var(--pd-dark); font-weight: 800; line-height: 1.25; margin: 34px 0 12px; }
+.pd-gutenberg-zone h2, .pd-gutenberg-zone .wp-block-heading:is(h2) { font-size: clamp(24px, 3vw, 32px); }
+.pd-gutenberg-zone h3, .pd-gutenberg-zone .wp-block-heading:is(h3) { font-size: clamp(19px, 2.4vw, 23px); }
+.pd-gutenberg-zone p, .pd-gutenberg-zone li { color: var(--pd-text-secondary); font-size: 16px; line-height: 1.75; }
+.pd-gutenberg-zone ol, .pd-gutenberg-zone ul { list-style: revert; padding-left: 22px; margin: 0 0 18px; }
+.pd-gutenberg-zone ol li, .pd-gutenberg-zone ul li { padding: 3px 0; }
+.pd-gutenberg-zone a { color: var(--pd-red); text-decoration: underline; text-underline-offset: 2px; }
+.pd-gutenberg-zone strong { color: var(--pd-dark); }
+.pd-gutenberg-zone img { border-radius: var(--pd-radius-md); box-shadow: var(--pd-shadow); }
+.pd-gutenberg-zone .wp-block-image, .pd-gutenberg-zone .wp-block-gallery { margin: 24px 0; }
+.pd-gutenberg-zone figcaption { text-align: center; font-size: 13px; color: var(--pd-text-muted); margin-top: 8px; }
+.pd-gutenberg-zone em { color: var(--pd-text-muted); }
+
+/* "Features" zone: style core Columns output as the same card look
+   the rest of the design uses (.pd-feature-card equivalent). */
+.pd-gutenberg-zone .wp-block-columns { max-width: none; gap: 22px; margin-bottom: 22px; }
+.pd-gutenberg-zone .wp-block-column {
+	background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md);
+	padding: 26px; transition: transform .25s ease, box-shadow .25s ease;
+}
+.pd-gutenberg-zone .wp-block-column:hover { transform: translateY(-4px); box-shadow: var(--pd-shadow-hover); }
+.pd-gutenberg-zone .wp-block-column .wp-block-heading, .pd-gutenberg-zone .wp-block-column h3 { margin-top: 0; font-size: 16.5px; }
+.pd-gutenberg-zone .wp-block-column p:last-child { margin-bottom: 0; font-size: 14px; }
+@media (max-width: 700px) { .pd-gutenberg-zone .wp-block-columns { flex-wrap: wrap; } }
+
+.pd-zone-missing { max-width: 900px; margin: 0 auto; padding: 16px 20px; border: 1px dashed var(--pd-border); border-radius: 12px; background: var(--pd-bg-soft); color: var(--pd-text-muted); font-size: 14px; text-align: center; }
 
 /* ---------- Section heading (non-split sections) ---------- */
 .pd-section-head { text-align: center; max-width: 680px; margin: 0 auto 44px; }
@@ -623,101 +664,36 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     4. Downloading From the Pinterest App
+	     4-7. GUTENBERG ZONE — "How to Use"
+	     Edit in wp-admin: Homepage Sections -> How to Use.
+	     Seeded with the App / Computer / iPhone / Android guides;
+	     add Image blocks for real screenshots, edit the wording,
+	     add or remove guides freely. Design (band background,
+	     spacing, container) stays fixed here; only the content
+	     inside is from the CPT.
 	     ===================================================== -->
 	<section class="pd-section pd-band--soft">
 		<div class="pd-container pd-reveal">
-			<div class="pd-split pd-split--reverse">
-				<div class="pd-split__text">
-					<div class="pd-eyebrow-icon"><?php pd_icon( 'phone' ); ?></div>
-					<h2>Downloading From the Pinterest App</h2>
-					<p>You can download Pinterest videos straight from the Pinterest app without leaving it open. Copy the link, come back here, and paste it.</p>
-					<ol class="pd-steps-list">
-						<li><span class="pd-step-dot">1</span> Open the Pinterest app and find your pin.</li>
-						<li><span class="pd-step-dot">2</span> Tap the three dots (•••) on the pin.</li>
-						<li><span class="pd-step-dot">3</span> Tap Copy Link.</li>
-						<li><span class="pd-step-dot">4</span> Come back here, paste the link, and tap Download.</li>
-						<li><span class="pd-step-dot">5</span> Your file saves to your Photos or Downloads folder.</li>
-					</ol>
-				</div>
-				<div class="pd-split__media">
-					<?php pd_image_placeholder( '4x5', 'Pinterest mobile app tutorial', 'pinterest-app-download-guide.webp', '1200x1500px' ); ?>
-				</div>
+			<div class="pd-section-head">
+				<h2>How to Use</h2>
 			</div>
+			<?php pd_render_content_zone( 'pd-how-to-use' ); ?>
 		</div>
 	</section>
 
 	<!-- =====================================================
-	     5. Downloading on a Computer
+	     GUTENBERG ZONE — "Images"
+	     Edit in wp-admin: Homepage Sections -> Images. Empty by
+	     default — add Image/Gallery blocks for product shots,
+	     app screenshots, whatever's useful. Purely supplementary;
+	     leave it empty and it just won't render anything extra.
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
-			<div class="pd-split">
-				<div class="pd-split__media">
-					<?php pd_image_placeholder( '16x9', 'Pinterest desktop browser tutorial', 'pinterest-desktop-download-guide.webp', '1600x900px' ); ?>
-				</div>
-				<div class="pd-split__text">
-					<div class="pd-eyebrow-icon"><?php pd_icon( 'device-monitor' ); ?></div>
-					<h2>Downloading on a Computer</h2>
-					<p>You can also download Pinterest videos on a computer, using any browser.</p>
-					<ol class="pd-steps-list">
-						<li><span class="pd-step-dot">1</span> Open Pinterest.com in your browser.</li>
-						<li><span class="pd-step-dot">2</span> Click the pin, then copy the link from your address bar.</li>
-						<li><span class="pd-step-dot">3</span> Paste it above and click Download.</li>
-						<li><span class="pd-step-dot">4</span> The file lands in your computer's Downloads folder.</li>
-					</ol>
-				</div>
+			<div class="pd-section-head">
+				<h2>See PinsDownload in Action</h2>
 			</div>
-		</div>
-	</section>
-
-	<!-- =====================================================
-	     6. How to Download Pinterest Videos on iPhone
-	     ===================================================== -->
-	<section class="pd-section pd-band--soft">
-		<div class="pd-container pd-reveal">
-			<div class="pd-split pd-split--reverse">
-				<div class="pd-split__text">
-					<div class="pd-eyebrow-icon"><?php pd_icon( 'device-phone' ); ?></div>
-					<h2>How to Download Pinterest Videos on iPhone</h2>
-					<p>Yes, PinsDownload works on iPhone. You don't need an app, just Safari and a Pinterest link.</p>
-					<ol class="pd-steps-list">
-						<li><span class="pd-step-dot">1</span> Open the Pinterest app on your iPhone.</li>
-						<li><span class="pd-step-dot">2</span> Tap the share icon on the video, then Copy Link.</li>
-						<li><span class="pd-step-dot">3</span> Open Safari and go to pinsdownload.org.</li>
-						<li><span class="pd-step-dot">4</span> Paste the link and tap Download.</li>
-						<li><span class="pd-step-dot">5</span> Save the video to your Photos app when it finishes.</li>
-					</ol>
-				</div>
-				<div class="pd-split__media">
-					<?php pd_image_placeholder( '4x5', 'iPhone Pinterest download tutorial', 'pinterest-iphone-download-guide.webp', '1200x1500px' ); ?>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<!-- =====================================================
-	     7. How to Download Pinterest Videos on Android
-	     ===================================================== -->
-	<section class="pd-section">
-		<div class="pd-container pd-reveal">
-			<div class="pd-split">
-				<div class="pd-split__media">
-					<?php pd_image_placeholder( '4x5', 'Android Pinterest download tutorial', 'pinterest-android-download-guide.webp', '1200x1500px' ); ?>
-				</div>
-				<div class="pd-split__text">
-					<div class="pd-eyebrow-icon"><?php pd_icon( 'device-phone' ); ?></div>
-					<h2>How to Download Pinterest Videos on Android</h2>
-					<p>Yes, PinsDownload works on Android too, right inside Chrome.</p>
-					<ol class="pd-steps-list">
-						<li><span class="pd-step-dot">1</span> Open the Pinterest app and find your video.</li>
-						<li><span class="pd-step-dot">2</span> Tap Share, then Copy Link.</li>
-						<li><span class="pd-step-dot">3</span> Open Chrome and visit pinsdownload.org.</li>
-						<li><span class="pd-step-dot">4</span> Paste the link and tap Download.</li>
-						<li><span class="pd-step-dot">5</span> The video saves to your Gallery or Downloads folder.</li>
-					</ol>
-				</div>
-			</div>
+			<?php pd_render_content_zone( 'pd-images' ); ?>
 		</div>
 	</section>
 
@@ -754,7 +730,12 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     9. Why People Use This Tool
+	     9. GUTENBERG ZONE — "Features"
+	     Edit in wp-admin: Homepage Sections -> Features. Seeded
+	     with the "Why People Use This Tool" 6-item grid, built as
+	     two rows of Columns blocks (Heading + Paragraph per
+	     column). Add/remove columns or whole Columns blocks and
+	     the card styling below still applies automatically.
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
@@ -762,14 +743,7 @@ get_header();
 				<h2>Why People Use This Tool</h2>
 				<p>PinsDownload is built to be simple, honest, and free. Here's what that means in practice.</p>
 			</div>
-			<div class="pd-feature-grid">
-				<div class="pd-feature-card"><?php pd_icon( 'tag' ); ?><h3>Free, always.</h3><p>No hidden charges, no daily limit.</p></div>
-				<div class="pd-feature-card"><?php pd_icon( 'slash' ); ?><h3>No watermark.</h3><p>Your download looks exactly like the original.</p></div>
-				<div class="pd-feature-card"><?php pd_icon( 'lock' ); ?><h3>No login.</h3><p>We never ask for your Pinterest password.</p></div>
-				<div class="pd-feature-card"><?php pd_icon( 'spark' ); ?><h3>Original quality.</h3><p>Videos and images save in the same resolution Pinterest gives us.</p></div>
-				<div class="pd-feature-card"><?php pd_icon( 'globe' ); ?><h3>Works everywhere.</h3><p>Phone, tablet, or computer, any browser.</p></div>
-				<div class="pd-feature-card"><?php pd_icon( 'mega' ); ?><h3>Honest about ads.</h3><p>A small number of ads keep this tool free. They never sit on top of or look like the Download button.</p></div>
-			</div>
+			<?php pd_render_content_zone( 'pd-features' ); ?>
 		</div>
 	</section>
 
@@ -798,40 +772,16 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     11. What Is a Pinterest Video Downloader?
+	     11-12 & 17. GUTENBERG ZONE — "Explanations"
+	     Edit in wp-admin: Homepage Sections -> Explanations.
+	     Seeded with "What Is a Pinterest Video Downloader?",
+	     "What People Use It For", and "Is It Legal to Download
+	     Pinterest Videos?" as Heading + Paragraph blocks. Expand,
+	     reorder, or add new explanatory topics freely.
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
-			<div class="pd-split pd-split--reverse">
-				<div class="pd-split__text">
-					<div class="pd-eyebrow-icon"><?php pd_icon( 'bulb' ); ?></div>
-					<h2>What Is a Pinterest Video Downloader?</h2>
-					<p>A Pinterest video downloader is a free online tool that saves Pinterest videos, images, and GIFs to your device. Pinterest doesn't let you download videos directly from its app or website, so this tool reads the pin's link and gives you a direct file to save. You don't need an account, and nothing is stored on our end after your download finishes.</p>
-				</div>
-				<div class="pd-split__media">
-					<?php pd_image_placeholder( '1x1', 'Illustration: link in, file out', 'pinsdownload-how-it-works.webp', '1200x1200px' ); ?>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<!-- =====================================================
-	     12. What People Use It For
-	     ===================================================== -->
-	<section class="pd-section pd-band--soft">
-		<div class="pd-container pd-reveal">
-			<div class="pd-section-head">
-				<h2>What People Use It For</h2>
-				<p>People download Pinterest content for all kinds of projects. Here are the most common ones.</p>
-			</div>
-			<div class="pd-tags-flow">
-				<?php
-				$pd_use_cases = array( 'Home décor ideas', 'Recipes and food photography', 'Fashion inspiration', 'DIY and craft projects', 'Wedding planning', 'Travel photos', 'Fitness routines', 'Study notes and aesthetics', 'Art references', 'Mood boards' );
-				foreach ( $pd_use_cases as $pd_case ) :
-					?>
-					<span class="pd-tag-pill"><?php echo esc_html( $pd_case ); ?></span>
-				<?php endforeach; ?>
-			</div>
+			<?php pd_render_content_zone( 'pd-explanations' ); ?>
 		</div>
 	</section>
 
@@ -937,18 +887,7 @@ get_header();
 		</div>
 	</section>
 
-	<!-- =====================================================
-	     17. Is It Legal to Download Pinterest Videos?
-	     ===================================================== -->
-	<section class="pd-section">
-		<div class="pd-container pd-reveal">
-			<div class="pd-info-card">
-				<div class="pd-eyebrow-icon"><?php pd_icon( 'link' ); ?></div>
-				<h2>Is It Legal to Download Pinterest Videos?</h2>
-				<p>Downloading a Pinterest video for personal, offline use is generally fine. Reposting, selling, or reusing someone else's video without permission is not. Pinterest content belongs to the person who posted it, so always ask before using it publicly.</p>
-			</div>
-		</div>
-	</section>
+	<!-- 17. Is It Legal to Download Pinterest Videos? — content now lives in the "Explanations" zone above. -->
 
 	<!-- =====================================================
 	     18. What Users Say
@@ -1009,24 +948,22 @@ get_header();
 	</section>
 
 	<!-- =====================================================
-	     21. Frequently Asked Questions
+	     21. GUTENBERG ZONE — "FAQ"
+	     Edit in wp-admin: Homepage Sections -> FAQ. Add a Heading
+	     block (the question) followed by a Paragraph block (the
+	     answer) for each item, in order — that pairing is what
+	     gets turned into the accordion below and into the
+	     FAQPage schema at the bottom of this page, so the two
+	     never drift out of sync. The accordion markup/CSS/JS
+	     itself stays fixed here regardless of how many items you
+	     add, remove, or reorder.
 	     ===================================================== -->
 	<section class="pd-section">
 		<div class="pd-container pd-reveal">
 			<div class="pd-section-head">
 				<h2>Frequently Asked Questions</h2>
 			</div>
-			<div class="pd-faq-list" id="pd-faq">
-				<?php foreach ( $pd_faq as $pd_pair ) : ?>
-					<div class="pd-faq-item">
-						<button type="button" class="pd-faq-q" aria-expanded="false">
-							<span><?php echo esc_html( $pd_pair[0] ); ?></span>
-							<?php pd_icon( 'chevron' ); ?>
-						</button>
-						<div class="pd-faq-a"><div><p><?php echo esc_html( $pd_pair[1] ); ?></p></div></div>
-					</div>
-				<?php endforeach; ?>
-			</div>
+			<?php pd_render_faq_zone( 'pd-faq' ); ?>
 		</div>
 	</section>
 
@@ -1188,7 +1125,7 @@ $pd_schema_howto = array(
 );
 
 $pd_schema_faq_items = array();
-foreach ( $pd_faq as $pd_pair ) {
+foreach ( pd_get_faq_pairs( 'pd-faq' ) as $pd_pair ) {
 	$pd_schema_faq_items[] = array(
 		'@type'          => 'Question',
 		'name'           => $pd_pair[0],
