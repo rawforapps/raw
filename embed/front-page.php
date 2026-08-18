@@ -1,0 +1,1212 @@
+<?php
+/**
+ * PinsDownload — standalone WordPress homepage template.
+ *
+ * Drop this file into any active theme as front-page.php (e.g.
+ * /wp-content/themes/YOUR-THEME/front-page.php), then set
+ * Settings -> Reading -> "Your homepage displays" -> A static page,
+ * or simply activate it as the theme's own front-page.php — WordPress
+ * uses front-page.php automatically once "A static page" (with no
+ * page picked) or a matching setup is in place. No page builder, no
+ * separate widget/shortcode install: the downloader tool itself is
+ * embedded directly in the hero below (same pintsave.net-backed logic
+ * as embed/pinsdownload-backend-wpcode.php), and every homepage
+ * section from Homepage_Content_PinsDownload.md is reproduced here
+ * word for word. This file only owns markup/CSS/JS/layout — no
+ * homepage copy was added, removed, or reworded.
+ *
+ * Technical foundation (set outside this file, WordPress already
+ * owns <title>/<meta> — via your SEO plugin or the theme's own
+ * header.php):
+ *   Title tag:       Pinterest Video Downloader – Save Videos, Images, GIFs & Stories Free | PinsDownload
+ *   Meta description: Download Pinterest videos, images, and GIFs in HD for free with PinsDownload. No login, no watermark, no app needed.
+ *   Schema on this page: SoftwareApplication, HowTo, FAQPage (all three are output inline near the
+ *   bottom of this file as JSON-LD). BreadcrumbList belongs on inner pages, not the homepage.
+ *   URL: homepage stays at the site root, not a subfolder.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/* =========================================================
+   TOOL LOGIC — same pintsave.net-backed resolver as
+   embed/pinsdownload-backend-wpcode.php, embedded directly so the
+   hero renders a real, working downloader instead of a placeholder.
+   Runs before get_header() so nothing is echoed before it.
+========================================================= */
+
+$pdl_result = null;
+$pdl_error  = '';
+
+if (
+	isset( $_SERVER['REQUEST_METHOD'] ) &&
+	$_SERVER['REQUEST_METHOD'] === 'POST' &&
+	isset( $_POST['pdl_action'] ) &&
+	$_POST['pdl_action'] === 'fetch'
+) {
+
+	$pdl_url = '';
+
+	if ( isset( $_POST['pinterest_url'] ) ) {
+		$pdl_url = trim( wp_unslash( $_POST['pinterest_url'] ) );
+	}
+
+	if ( $pdl_url === '' ) {
+
+		$pdl_error = 'Please enter a Pinterest URL.';
+
+	} elseif ( ! filter_var( $pdl_url, FILTER_VALIDATE_URL ) ) {
+
+		$pdl_error = 'Please enter a valid Pinterest URL.';
+
+	} else {
+
+		$pdl_host = wp_parse_url( $pdl_url, PHP_URL_HOST );
+
+		if ( ! $pdl_host ) {
+
+			$pdl_error = 'Invalid Pinterest URL.';
+
+		} else {
+
+			$pdl_host = strtolower( $pdl_host );
+			$pdl_host = preg_replace( '/^www\./', '', $pdl_host );
+
+			$pdl_allowed_hosts = array( 'pinterest.com', 'pin.it' );
+
+			if ( ! in_array( $pdl_host, $pdl_allowed_hosts, true ) ) {
+
+				$pdl_error = 'Please enter a Pinterest URL.';
+
+			} else {
+
+				$pdl_api_response = wp_remote_post(
+					'https://pintsave.net/api/fetch-media',
+					array(
+						'timeout' => 45,
+						'headers' => array(
+							'Accept'           => '*/*',
+							'X-Requested-With' => 'XMLHttpRequest',
+						),
+						'body'    => array(
+							'url' => $pdl_url,
+						),
+					)
+				);
+
+				if ( is_wp_error( $pdl_api_response ) ) {
+
+					$pdl_error = 'Unable to connect to the media service. Please try again.';
+
+				} else {
+
+					$pdl_status = wp_remote_retrieve_response_code( $pdl_api_response );
+					$pdl_body   = wp_remote_retrieve_body( $pdl_api_response );
+
+					if ( $pdl_status !== 200 ) {
+
+						$pdl_error = 'The media service returned an error. Please try again.';
+
+					} else {
+
+						$pdl_result = json_decode( $pdl_body, true );
+
+						if (
+							! is_array( $pdl_result ) ||
+							empty( $pdl_result['media'] ) ||
+							! is_array( $pdl_result['media'] )
+						) {
+							$pdl_error  = 'No downloadable media was found for this Pinterest URL.';
+							$pdl_result = null;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/* =========================================================
+   ICON HELPER — inline SVG only, no external icon library.
+   A small shared set (~2 dozen), reused across sections.
+========================================================= */
+
+if ( ! function_exists( 'pd_icon' ) ) {
+	function pd_icon( $name ) {
+		$icons = array(
+			'check'           => '<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',
+			'cross'           => '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
+			'spark'           => '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>',
+			'shield'          => '<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>',
+			'globe'           => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 14.3 0 18M12 3C9.5 5.7 9.5 17.3 12 21"/>',
+			'phone'           => '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/>',
+			'lock'            => '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+			'tag'             => '<path d="M12.6 3.5H5.5v7.1c0 .5.2 1 .6 1.4l8.6 8.6c.8.8 2 .8 2.8 0l4.2-4.2c.8-.8.8-2 0-2.8L13.1 4.1c-.4-.4-.9-.6-1.4-.6z"/><circle cx="9" cy="9" r="1.4"/>',
+			'slash'           => '<circle cx="12" cy="12" r="9"/><path d="M6.5 6.5l11 11"/>',
+			'mega'            => '<path d="M3 10v4h3l6 4V6l-6 4H3z"/><path d="M16 9.5a4 4 0 0 1 0 5M19 7a7.5 7.5 0 0 1 0 10"/>',
+			'image'           => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 16l-5.5-5.5L6 19"/>',
+			'gif'             => '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 9.5v5M11 9.5v5M11 12h2.5M16 9.5c-1.4 0-2.3 1-2.3 2.5s.9 2.5 2.3 2.5c.7 0 1.3-.2 1.6-.5v-1.7H16"/>',
+			'film'            => '<rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M8 4.5v15M16 4.5v15M3 9.5h5M16 9.5h5M3 15h5M16 15h5"/>',
+			'layers'          => '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5M3 8l9 5 9-5"/>',
+			'grid'            => '<rect x="3.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.4"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4"/>',
+			'user'            => '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.4-4 4-6 7.5-6s6.1 2 7.5 6"/>',
+			'bulb'            => '<path d="M9 18h6M9.5 21h5M8 14.5A4.9 4.9 0 1 1 16 14.5c-.8 1-1.5 1.8-1.5 3H9.5c0-1.2-.7-2-1.5-3z"/>',
+			'message'         => '<path d="M4 5.5h16v11H9l-4 3.5v-3.5H4v-11z"/>',
+			'link'            => '<path d="M9.5 14.5l5-5"/><path d="M13 6.5l1.4-1.4a3.5 3.5 0 0 1 5 5L18 11.5M11 17.5l-1.4 1.4a3.5 3.5 0 0 1-5-5L6 12.5"/>',
+			'clock'           => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+			'chevron'         => '<path d="M6 9l6 6 6-6"/>',
+			'arrow'           => '<path d="M4 12h15M13 6l6 6-6 6"/>',
+			'quote'           => '<path d="M7 8.5c-2 .6-3 2.2-3 4.4 0 2 1.3 3.6 3.3 3.6S10.6 15 10.6 13 9.4 9.5 7.5 9.5c0-.5.6-1 1.3-1zM16 8.5c-2 .6-3 2.2-3 4.4 0 2 1.3 3.6 3.3 3.6s3.3-1.5 3.3-3.5-1.2-3.5-3.1-3.5c0-.5.6-1 1.3-1z"/>',
+			'device-phone'    => '<rect x="8" y="2.5" width="8" height="19" rx="1.8"/><path d="M11 18.3h2"/>',
+			'device-monitor'  => '<rect x="3" y="4.5" width="18" height="12" rx="1.8"/><path d="M9 20h6M12 16.5V20"/>',
+			'device-terminal' => '<rect x="3" y="4.5" width="18" height="15" rx="1.8"/><path d="M7 9.5l3 2.5-3 2.5M13 15h4"/>',
+			'search'          => '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.5-4.5"/>',
+			'copy'            => '<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15 8.5V6.5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/>',
+			'download'        => '<path d="M12 3v12M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/>',
+		);
+
+		if ( ! isset( $icons[ $name ] ) ) {
+			return;
+		}
+
+		echo '<svg class="pd-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $icons[ $name ] . '</svg>'; // phpcs:ignore -- static, hand-written SVG, no user input.
+	}
+}
+
+if ( ! function_exists( 'pd_image_placeholder' ) ) {
+	/**
+	 * @param string $ratio_key  '16x9' | '4x5' | '1x1'
+	 */
+	function pd_image_placeholder( $ratio_key, $alt, $filename, $size ) {
+		$ratio_labels = array(
+			'16x9' => '16:9',
+			'4x5'  => '4:5',
+			'1x1'  => '1:1',
+		);
+		$ratio_label = isset( $ratio_labels[ $ratio_key ] ) ? $ratio_labels[ $ratio_key ] : $ratio_key;
+		?>
+		<!-- IMAGE PLACEHOLDER
+		     Filename: <?php echo esc_html( $filename ); ?>
+		     Recommended size: <?php echo esc_html( $size ); ?>
+		     Aspect ratio: <?php echo esc_html( $ratio_label ); ?>
+		     Replace this placeholder with the final image.
+		-->
+		<div class="pd-img-ph pd-img-ph--<?php echo esc_attr( $ratio_key ); ?>">
+			<?php pd_icon( 'image' ); ?>
+			<span><?php echo esc_html( $alt ); ?></span>
+		</div>
+		<?php
+	}
+}
+
+$pd_faq = array(
+	array( 'Is PinsDownload safe to use?', 'Yes. We never ask for your Pinterest login, and we don\'t store the files you download.' ),
+	array( 'Is it legal to download Pinterest videos?', 'Downloading for personal use is fine. Reposting someone else\'s work without permission is not.' ),
+	array( 'Do I need to log in to my Pinterest account?', 'No. PinsDownload only works with public links, so no login is needed.' ),
+	array( 'What video and image formats are supported?', 'Videos save as MP4. Images save as JPG or PNG. GIFs keep their original animation.' ),
+	array( 'Does this tool save my downloaded content?', 'No. We fetch the file and send it straight to you. Nothing is kept on our servers.' ),
+	array( 'Can I download Pinterest videos without a watermark?', 'Yes. Every download matches the original Pinterest file, with no watermark added.' ),
+	array( 'Is there a limit on how many videos I can download?', 'No daily limit for single pins. Board and profile downloads are capped at 100 pins per request.' ),
+	array( 'Does this work on iPhone and Android?', 'Yes. PinsDownload runs in your browser, so it works on iPhone, Android, and desktop.' ),
+	array( 'Can I download a full Pinterest board or profile?', 'Yes. Paste the board or profile link, then choose to download items one by one or all at once as a ZIP.' ),
+	array( 'Can I download private or deleted pins?', 'No. PinsDownload only works with public, active pins.' ),
+	array( 'What should I do if a download fails?', 'Check that the link is public and still active. If it still fails, try copying the link again from Pinterest.' ),
+	array( 'Will the video lose quality after downloading?', 'No. PinsDownload saves the file at the same resolution Pinterest provides, with no extra compression.' ),
+);
+
+get_header();
+?>
+
+<style>
+/* =========================================================
+   PinsDownload homepage — scoped design system (.pd- prefix)
+========================================================= */
+#pd-page, #pd-page *, #pd-page *::before, #pd-page *::after { box-sizing: border-box; }
+
+#pd-page {
+	--pd-red: #E60023;
+	--pd-red-dark: #c90020;
+	--pd-dark: #171717;
+	--pd-text-secondary: #666666;
+	--pd-text-muted: #777777;
+	--pd-bg: #FFFFFF;
+	--pd-bg-soft: #FAF7F7;
+	--pd-border: #EAEAEA;
+	--pd-red-tint: #FFF1F3;
+	--pd-radius-lg: 24px;
+	--pd-radius-md: 18px;
+	--pd-shadow: 0 10px 40px rgba(0,0,0,.06);
+	--pd-shadow-hover: 0 16px 46px rgba(0,0,0,.10);
+	--pd-max: 1200px;
+
+	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+	color: var(--pd-dark);
+	background: var(--pd-bg);
+	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+}
+
+#pd-page h1, #pd-page h2, #pd-page h3 { font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 16px; color: var(--pd-dark); }
+#pd-page p { margin: 0 0 16px; color: var(--pd-text-secondary); font-size: 16px; }
+#pd-page ul, #pd-page ol { margin: 0; padding: 0; list-style: none; }
+#pd-page a { color: var(--pd-red); }
+#pd-page svg.pd-i { width: 20px; height: 20px; flex-shrink: 0; }
+#pd-page :focus-visible { outline: 2px solid var(--pd-red); outline-offset: 3px; }
+
+.pd-container { max-width: var(--pd-max); margin: 0 auto; padding: 0 18px; }
+@media (min-width: 640px) { .pd-container { padding: 0 32px; } }
+
+.pd-section { padding: clamp(55px, 8vw, 110px) 0; }
+.pd-band--soft { background: var(--pd-bg-soft); }
+.pd-eyebrow-icon { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: var(--pd-red-tint); color: var(--pd-red); margin-bottom: 18px; }
+.pd-eyebrow-icon svg { width: 22px; height: 22px; }
+
+/* Scroll reveal */
+.pd-reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.pd-reveal.pd-in-view { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+	.pd-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------- Hero + tool ---------- */
+.pd-hero-section { position: relative; overflow: hidden; padding: clamp(56px, 9vw, 116px) 0 clamp(48px, 7vw, 84px); background: linear-gradient(180deg, #ffffff 0%, var(--pd-bg-soft) 100%); }
+.pd-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(620px 420px at 50% 10%, rgba(230,0,35,.10), transparent 70%); }
+.pd-hero-shape { position: absolute; border-radius: 50%; filter: blur(2px); opacity: .5; pointer-events: none; }
+.pd-hero-shape--1 { width: 90px; height: 90px; border: 2px solid var(--pd-red-tint); top: 14%; left: 6%; }
+.pd-hero-shape--2 { width: 46px; height: 46px; background: var(--pd-red-tint); top: 60%; right: 8%; }
+.pd-hero { position: relative; text-align: center; }
+.pd-hero__eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: 12.5px; font-weight: 700; color: var(--pd-red); margin: 0 0 18px; }
+.pd-hero__title { font-size: clamp(40px, 6vw, 72px); text-align: center; margin-bottom: 20px; }
+.pd-hero__subtitle { max-width: 680px; margin: 0 auto 42px; font-size: clamp(16px, 1.6vw, 19px); text-align: center; }
+
+.pd-tool-card { position: relative; max-width: 800px; margin: 0 auto; background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-lg); padding: clamp(20px, 4vw, 38px); box-shadow: 0 24px 64px rgba(230,0,35,.12), var(--pd-shadow); text-align: left; }
+
+.pdl-form { display: flex; width: 100%; gap: 10px; margin: 0; }
+.pdl-input { flex: 1; width: 100%; min-width: 0; height: 54px; padding: 0 16px; border: 1px solid #d9d9d9; border-radius: 12px; background: #fff; color: var(--pd-dark); font-size: 16px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
+.pdl-input:focus { border-color: var(--pd-red); box-shadow: 0 0 0 3px rgba(230,0,35,.08); }
+.pdl-button { height: 54px; padding: 0 28px; border: 0; border-radius: 12px; background: var(--pd-red); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .2s ease, transform .2s ease; }
+.pdl-button:hover { background: var(--pd-red-dark); transform: translateY(-1px); }
+.pdl-button:disabled { opacity: .7; cursor: wait; transform: none; }
+.pdl-loading { display: none; margin-top: 18px; text-align: center; color: var(--pd-text-secondary); font-size: 14px; }
+.pdl-spinner { display: inline-block; width: 18px; height: 18px; margin-right: 7px; vertical-align: middle; border: 3px solid #dddddd; border-top-color: var(--pd-red); border-radius: 50%; animation: pdl-spin .8s linear infinite; }
+@keyframes pdl-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .pdl-spinner { animation-duration: 1.6s; } }
+.pdl-error { margin-top: 20px; padding: 14px 16px; border: 1px solid #ffd0d0; border-radius: 12px; background: #fff0f0; color: #b00020; font-size: 14px; line-height: 1.5; }
+.pdl-results { margin-top: 26px; }
+.pdl-result { margin-bottom: 20px; padding: 18px; border: 1px solid var(--pd-border); border-radius: 16px; background: var(--pd-bg-soft); }
+.pdl-media { display: block; width: 100%; max-height: 560px; margin: 0 auto 16px; border-radius: 12px; background: #111; object-fit: contain; }
+.pdl-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.pdl-info-item { min-width: 0; padding: 11px; border: 1px solid var(--pd-border); border-radius: 10px; background: #fff; }
+.pdl-info-label { display: block; margin-bottom: 4px; color: var(--pd-text-muted); font-size: 12px; }
+.pdl-info-value { display: block; color: var(--pd-dark); font-size: 14px; font-weight: 600; word-break: break-word; }
+.pdl-download { display: block; width: 100%; padding: 14px 18px; border-radius: 12px; background: var(--pd-red); color: #fff !important; text-align: center; text-decoration: none !important; font-size: 15px; font-weight: 700; }
+.pdl-download:hover { background: var(--pd-red-dark); }
+.pdl-meta { margin-top: 18px; padding: 15px; border-radius: 12px; background: var(--pd-bg-soft); color: var(--pd-text-secondary); font-size: 14px; }
+.pdl-meta strong { color: var(--pd-dark); }
+
+/* ---------- Feature strip ---------- */
+.pd-strip { background: var(--pd-bg-soft); border-top: 1px solid var(--pd-border); border-bottom: 1px solid var(--pd-border); }
+.pd-strip-row { max-width: var(--pd-max); margin: 0 auto; padding: 22px 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.pd-chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--pd-border); border-radius: 999px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; }
+.pd-chip svg { color: var(--pd-red); width: 17px; height: 17px; }
+
+/* ---------- Steps ---------- */
+.pd-steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; position: relative; margin-top: 44px; }
+.pd-steps-row::before { content: ""; position: absolute; top: 33px; left: 17%; right: 17%; height: 2px; background: linear-gradient(90deg, var(--pd-red-tint), var(--pd-border), var(--pd-red-tint)); z-index: 0; }
+.pd-step-card { position: relative; z-index: 1; background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md); padding: 30px 24px; box-shadow: var(--pd-shadow); transition: transform .25s ease, box-shadow .25s ease; }
+.pd-step-card:hover { transform: translateY(-4px); box-shadow: var(--pd-shadow-hover); }
+.pd-step-num { font-size: 13px; font-weight: 800; color: var(--pd-red); background: var(--pd-red-tint); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.pd-step-card svg { color: var(--pd-red); margin-bottom: 10px; }
+.pd-step-card h3 { font-size: 18px; margin-bottom: 8px; }
+.pd-step-card p { font-size: 14.5px; margin: 0; }
+@media (max-width: 860px) { .pd-steps-row { grid-template-columns: 1fr; } .pd-steps-row::before { display: none; } }
+
+/* ---------- Image placeholders ---------- */
+.pd-img-ph { position: relative; border-radius: var(--pd-radius-md); border: 1.5px dashed var(--pd-border); background: repeating-linear-gradient(135deg, #fafafa, #fafafa 10px, #f4f4f4 10px, #f4f4f4 20px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--pd-text-muted); font-size: 13px; text-align: center; padding: 20px; }
+.pd-img-ph svg { width: 30px; height: 30px; opacity: .6; }
+.pd-img-ph--16x9 { aspect-ratio: 16 / 9; }
+.pd-img-ph--4x5 { aspect-ratio: 4 / 5; }
+.pd-img-ph--1x1 { aspect-ratio: 1 / 1; }
+
+/* ---------- Split layout ---------- */
+.pd-split { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; align-items: center; }
+.pd-split--reverse .pd-split__text { order: 2; }
+.pd-split--reverse .pd-split__media { order: 1; }
+.pd-split h2 { font-size: clamp(26px, 3.4vw, 38px); }
+.pd-steps-list { margin: 18px 0; }
+.pd-steps-list li { display: flex; gap: 12px; padding: 9px 0; font-size: 15px; color: var(--pd-text-secondary); border-bottom: 1px solid var(--pd-border); }
+.pd-steps-list li:last-child { border-bottom: 0; }
+.pd-steps-list .pd-step-dot { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--pd-red-tint); color: var(--pd-red); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+@media (max-width: 860px) { .pd-split { grid-template-columns: 1fr; gap: 30px; } .pd-split--reverse .pd-split__text, .pd-split--reverse .pd-split__media { order: initial; } }
+
+/* ---------- Section heading (non-split sections) ---------- */
+.pd-section-head { text-align: center; max-width: 680px; margin: 0 auto 44px; }
+.pd-section-head h2 { font-size: clamp(28px, 3.6vw, 44px); }
+
+/* ---------- Works / doesn't ---------- */
+.pd-wd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.pd-wd-card { border-radius: var(--pd-radius-md); padding: 30px; border: 1px solid var(--pd-border); }
+.pd-wd-card--yes { background: #fff; }
+.pd-wd-card--no { background: var(--pd-bg-soft); }
+.pd-wd-card h3 { display: flex; align-items: center; gap: 10px; font-size: 18px; margin-bottom: 18px; }
+.pd-wd-card--yes h3 { color: #1a7a3c; }
+.pd-wd-card--yes h3 svg { color: #1a7a3c; }
+.pd-wd-card--no h3 { color: #a03; }
+.pd-wd-card--no h3 svg { color: #a03; }
+.pd-wd-card li { display: flex; gap: 10px; padding: 8px 0; font-size: 14.5px; color: var(--pd-text-secondary); }
+.pd-wd-card li svg { margin-top: 2px; }
+@media (max-width: 700px) { .pd-wd-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Feature grid ---------- */
+.pd-feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.pd-feature-card { padding: 28px; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; transition: transform .25s ease, box-shadow .25s ease; }
+.pd-feature-card:hover { transform: translateY(-4px); box-shadow: var(--pd-shadow-hover); }
+.pd-feature-card svg { color: var(--pd-red); margin-bottom: 12px; }
+.pd-feature-card h3 { font-size: 16.5px; margin-bottom: 6px; }
+.pd-feature-card p { font-size: 14px; margin: 0; }
+@media (max-width: 960px) { .pd-feature-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .pd-feature-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Content-type grid ---------- */
+.pd-type-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.pd-type-card { background: #fff; border: 1px solid var(--pd-border); border-radius: 16px; padding: 20px 14px; text-align: center; transition: transform .2s ease, box-shadow .2s ease; }
+.pd-type-card:hover { transform: translateY(-3px); box-shadow: var(--pd-shadow); }
+.pd-type-card svg { color: var(--pd-red); margin-bottom: 10px; }
+.pd-type-card strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.pd-type-card span { display: block; font-size: 12.5px; color: var(--pd-text-muted); line-height: 1.5; }
+@media (max-width: 960px) { .pd-type-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .pd-type-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---------- Tags flow ---------- */
+.pd-tags-flow { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.pd-tag-pill { background: #fff; border: 1px solid var(--pd-border); color: var(--pd-dark); border-radius: 999px; padding: 10px 20px; font-size: 14px; font-weight: 600; }
+
+/* ---------- Comparison table ---------- */
+.pd-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; }
+.pd-compare { width: 100%; border-collapse: collapse; min-width: 640px; }
+.pd-compare th, .pd-compare td { padding: 15px 18px; text-align: left; font-size: 14.5px; border-bottom: 1px solid var(--pd-border); white-space: nowrap; }
+.pd-compare thead th { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--pd-text-muted); }
+.pd-compare tbody tr:last-child td { border-bottom: 0; }
+.pd-compare td:first-child, .pd-compare th:first-child { color: var(--pd-dark); font-weight: 600; }
+.pd-compare .pd-hl { background: var(--pd-red-tint); color: var(--pd-red-dark); font-weight: 700; }
+.pd-review-note { text-align: center; font-size: 13px; color: var(--pd-text-muted); margin-top: 16px; }
+
+/* ---------- Devices ---------- */
+.pd-device-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.pd-device-chip { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--pd-border); border-radius: 14px; padding: 15px 22px; font-size: 14px; }
+.pd-device-chip svg { color: var(--pd-red); }
+.pd-device-chip strong { display: block; }
+.pd-device-chip span { color: var(--pd-text-muted); font-size: 12.5px; }
+
+/* ---------- Info card (safety / legal) ---------- */
+.pd-info-card { max-width: 800px; margin: 0 auto; text-align: center; background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-lg); padding: 42px; box-shadow: var(--pd-shadow); }
+.pd-info-card .pd-eyebrow-icon { margin: 0 auto 18px; }
+
+/* ---------- Trust badges ---------- */
+.pd-badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.pd-badge-card { text-align: center; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md); padding: 26px 20px; background: #fff; text-decoration: none; display: block; transition: box-shadow .2s ease; }
+.pd-badge-card:hover { box-shadow: var(--pd-shadow); }
+.pd-badge-card svg { color: var(--pd-red); margin-bottom: 10px; }
+.pd-badge-card strong { display: block; color: var(--pd-dark); font-size: 14.5px; margin-bottom: 8px; }
+.pd-badge-status { display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--pd-text-muted); background: var(--pd-bg-soft); padding: 4px 12px; border-radius: 999px; }
+@media (max-width: 700px) { .pd-badge-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Testimonial placeholders ---------- */
+.pd-testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.pd-testi-card { border: 1.5px dashed var(--pd-border); border-radius: var(--pd-radius-md); padding: 28px; text-align: center; color: var(--pd-text-muted); background: var(--pd-bg-soft); }
+.pd-testi-card svg { color: var(--pd-border); margin-bottom: 12px; }
+.pd-testi-card p { font-size: 14px; margin: 0; font-style: italic; }
+@media (max-width: 860px) { .pd-testi-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Timeline ---------- */
+.pd-timeline { max-width: 680px; margin: 0 auto; border-left: 2px solid var(--pd-red-tint); padding-left: 26px; }
+.pd-timeline-item { position: relative; padding-bottom: 4px; }
+.pd-timeline-item::before { content: ""; position: absolute; left: -31.5px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--pd-red); }
+.pd-timeline-item p { margin: 0; font-size: 15px; }
+.pd-timeline-item strong { color: var(--pd-dark); }
+
+/* ---------- Card rows (guides / other tools) ---------- */
+.pd-card-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.pd-placeholder-card { border: 1px solid var(--pd-border); border-radius: 16px; padding: 22px; background: #fff; }
+.pd-placeholder-card strong { display: block; font-size: 15px; margin-bottom: 6px; }
+.pd-placeholder-card span { font-size: 12.5px; color: var(--pd-text-muted); }
+.pd-placeholder-card--current { border-color: var(--pd-red); background: var(--pd-red-tint); }
+@media (max-width: 860px) { .pd-card-row { grid-template-columns: 1fr; } }
+
+/* ---------- FAQ accordion ---------- */
+.pd-faq-list { max-width: 820px; margin: 0 auto; border-top: 1px solid var(--pd-border); }
+.pd-faq-item { border-bottom: 1px solid var(--pd-border); }
+.pd-faq-q { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; background: none; border: 0; padding: 21px 4px; font-size: 15.5px; font-weight: 600; color: var(--pd-dark); cursor: pointer; text-align: left; font-family: inherit; }
+.pd-faq-q svg { color: var(--pd-red); transition: transform .25s ease; }
+.pd-faq-item[data-open="true"] .pd-faq-q svg { transform: rotate(180deg); }
+.pd-faq-a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .25s ease; }
+.pd-faq-a > div { overflow: hidden; }
+.pd-faq-item[data-open="true"] .pd-faq-a { grid-template-rows: 1fr; }
+.pd-faq-a p { padding: 0 4px 21px; margin: 0; font-size: 14.5px; }
+@media (prefers-reduced-motion: reduce) { .pd-faq-a { transition: none; } }
+
+/* ---------- Quick answers ---------- */
+.pd-qa-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.pd-qa-card { background: #fff; border: 1px solid var(--pd-border); border-radius: 14px; padding: 18px 20px; }
+.pd-qa-card strong { display: block; font-size: 14.5px; margin-bottom: 4px; }
+.pd-qa-card span { font-size: 13.5px; color: var(--pd-text-muted); }
+@media (max-width: 700px) { .pd-qa-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Final CTA ---------- */
+.pd-cta { text-align: center; padding: clamp(60px, 8vw, 100px) 0; }
+.pd-cta h2 { font-size: clamp(28px, 3.6vw, 42px); margin-bottom: 12px; }
+.pd-cta p { max-width: 480px; margin: 0 auto 30px; }
+.pd-btn-primary { display: inline-flex; align-items: center; gap: 10px; background: var(--pd-red); color: #fff !important; text-decoration: none !important; font-weight: 700; font-size: 16px; padding: 16px 32px; border-radius: 12px; transition: background .2s ease, transform .2s ease; min-height: 44px; }
+.pd-btn-primary:hover { background: var(--pd-red-dark); transform: translateY(-2px); }
+
+@media (max-width: 480px) {
+	.pdl-form { flex-direction: column; }
+	.pdl-info { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
+<div class="pd-page" id="pd-page">
+
+	<!-- =====================================================
+	     1. HERO + TOOL — pintsave.net downloader embedded live.
+	     ===================================================== -->
+	<section class="pd-hero-section">
+		<div class="pd-hero-glow" aria-hidden="true"></div>
+		<span class="pd-hero-shape pd-hero-shape--1" aria-hidden="true"></span>
+		<span class="pd-hero-shape pd-hero-shape--2" aria-hidden="true"></span>
+		<div class="pd-container pd-hero">
+			<p class="pd-hero__eyebrow">Pinterest Downloader</p>
+			<h1 class="pd-hero__title">Pinterest Video Downloader</h1>
+			<p class="pd-hero__subtitle">Download Pinterest videos, images, GIFs, and stories in one click. Free, fast, and no account needed. Works as a full Pinterest video downloader online, no software to install.</p>
+
+			<div class="pd-tool-card" id="pdl-tool">
+
+				<form method="post" class="pdl-form" id="pdl-form">
+					<input
+						type="url"
+						name="pinterest_url"
+						class="pdl-input"
+						placeholder="Paste Pinterest link here..."
+						value="<?php echo isset( $pdl_url ) ? esc_attr( $pdl_url ) : ''; ?>"
+						autocomplete="off"
+						required
+						aria-label="Pinterest URL"
+					>
+					<input type="hidden" name="pdl_action" value="fetch">
+					<button type="submit" class="pdl-button">Download</button>
+				</form>
+
+				<div id="pdl-loading" class="pdl-loading">
+					<span class="pdl-spinner"></span>
+					Fetching Pinterest media...
+				</div>
+
+				<?php if ( $pdl_error !== '' ) : ?>
+					<div class="pdl-error"><?php echo esc_html( $pdl_error ); ?></div>
+				<?php endif; ?>
+
+				<?php if ( is_array( $pdl_result ) && ! empty( $pdl_result['media'] ) && is_array( $pdl_result['media'] ) ) : ?>
+					<div class="pdl-results">
+						<?php foreach ( $pdl_result['media'] as $pdl_media ) : ?>
+							<?php
+							if ( ! is_array( $pdl_media ) || empty( $pdl_media['url'] ) ) {
+								continue;
+							}
+							$pdl_media_url  = $pdl_media['url'];
+							$pdl_media_type = ! empty( $pdl_media['type'] ) ? strtolower( $pdl_media['type'] ) : 'image';
+							$pdl_width      = ! empty( $pdl_media['width'] ) ? $pdl_media['width'] : '';
+							$pdl_height     = ! empty( $pdl_media['height'] ) ? $pdl_media['height'] : '';
+							$pdl_quality    = ! empty( $pdl_media['quality'] ) ? $pdl_media['quality'] : '';
+							$pdl_duration   = ! empty( $pdl_media['duration'] ) ? $pdl_media['duration'] : '';
+							$pdl_thumbnail  = ! empty( $pdl_media['thumbnail'] ) ? $pdl_media['thumbnail'] : '';
+							?>
+							<div class="pdl-result">
+								<?php if ( $pdl_media_type === 'video' ) : ?>
+									<video class="pdl-media" controls playsinline preload="metadata" <?php if ( $pdl_thumbnail !== '' ) : ?>poster="<?php echo esc_url( $pdl_thumbnail ); ?>"<?php endif; ?>>
+										<source src="<?php echo esc_url( $pdl_media_url ); ?>" type="video/mp4">
+										Your browser does not support video playback.
+									</video>
+								<?php else : ?>
+									<img class="pdl-media" src="<?php echo esc_url( $pdl_media_url ); ?>" alt="Pinterest image" loading="lazy">
+								<?php endif; ?>
+
+								<div class="pdl-info">
+									<div class="pdl-info-item">
+										<span class="pdl-info-label">Type</span>
+										<span class="pdl-info-value"><?php echo esc_html( ucfirst( $pdl_media_type ) ); ?></span>
+									</div>
+									<?php if ( $pdl_quality !== '' ) : ?>
+										<div class="pdl-info-item">
+											<span class="pdl-info-label">Quality</span>
+											<span class="pdl-info-value"><?php echo esc_html( $pdl_quality ); ?></span>
+										</div>
+									<?php endif; ?>
+									<?php if ( $pdl_width !== '' && $pdl_height !== '' ) : ?>
+										<div class="pdl-info-item">
+											<span class="pdl-info-label">Resolution</span>
+											<span class="pdl-info-value"><?php echo esc_html( $pdl_width . ' × ' . $pdl_height ); ?></span>
+										</div>
+									<?php endif; ?>
+									<?php if ( $pdl_duration !== '' ) : ?>
+										<div class="pdl-info-item">
+											<span class="pdl-info-label">Duration</span>
+											<span class="pdl-info-value"><?php echo esc_html( $pdl_duration . ' seconds' ); ?></span>
+										</div>
+									<?php endif; ?>
+								</div>
+
+								<a class="pdl-download" href="<?php echo esc_url( $pdl_media_url ); ?>" download target="_blank" rel="noopener noreferrer">
+									Download <?php echo $pdl_media_type === 'video' ? 'Video' : 'Image'; ?>
+								</a>
+							</div>
+						<?php endforeach; ?>
+
+						<?php $pdl_title = ! empty( $pdl_result['title'] ) ? $pdl_result['title'] : ''; ?>
+						<?php if ( $pdl_title !== '' ) : ?>
+							<div class="pdl-meta"><strong><?php echo esc_html( $pdl_title ); ?></strong></div>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
+
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     2. Supported Formats & Quality Strip
+	     ===================================================== -->
+	<div class="pd-strip">
+		<div class="pd-strip-row">
+			<span class="pd-chip"><?php pd_icon( 'spark' ); ?> HD · 2K · 4K quality</span>
+			<span class="pd-chip"><?php pd_icon( 'slash' ); ?> No watermark</span>
+			<span class="pd-chip"><?php pd_icon( 'film' ); ?> MP4, JPG, PNG, GIF supported</span>
+			<span class="pd-chip"><?php pd_icon( 'globe' ); ?> Works on phone, tablet, and computer</span>
+		</div>
+	</div>
+
+	<!-- =====================================================
+	     3. How to Download a Pinterest Video
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>How to Download a Pinterest Video</h2>
+				<p>A Pinterest video downloader works in three steps. Open Pinterest and find the video you want. Tap the share icon and choose "Copy Link." Paste the link above and tap Download.</p>
+			</div>
+			<div class="pd-steps-row">
+				<div class="pd-step-card">
+					<div class="pd-step-num">01</div>
+					<?php pd_icon( 'search' ); ?>
+					<h3>Open Pinterest</h3>
+					<p>Open Pinterest and find the video you want.</p>
+				</div>
+				<div class="pd-step-card">
+					<div class="pd-step-num">02</div>
+					<?php pd_icon( 'copy' ); ?>
+					<h3>Copy Link</h3>
+					<p>Tap the share icon and choose "Copy Link."</p>
+				</div>
+				<div class="pd-step-card">
+					<div class="pd-step-num">03</div>
+					<?php pd_icon( 'download' ); ?>
+					<h3>Paste &amp; Download</h3>
+					<p>Paste the link above and tap Download.</p>
+				</div>
+			</div>
+			<p style="text-align:center; margin-top:30px;">Your video saves straight to your device. No app, no sign up.</p>
+
+			<div style="margin-top:44px; max-width:900px; margin-left:auto; margin-right:auto;">
+				<?php pd_image_placeholder( '16x9', 'Pinterest download tutorial screenshot', 'pinterest-download-tutorial.webp', '1600x900px' ); ?>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     4. Downloading From the Pinterest App
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-split pd-split--reverse">
+				<div class="pd-split__text">
+					<div class="pd-eyebrow-icon"><?php pd_icon( 'phone' ); ?></div>
+					<h2>Downloading From the Pinterest App</h2>
+					<p>You can download Pinterest videos straight from the Pinterest app without leaving it open. Copy the link, come back here, and paste it.</p>
+					<ol class="pd-steps-list">
+						<li><span class="pd-step-dot">1</span> Open the Pinterest app and find your pin.</li>
+						<li><span class="pd-step-dot">2</span> Tap the three dots (•••) on the pin.</li>
+						<li><span class="pd-step-dot">3</span> Tap Copy Link.</li>
+						<li><span class="pd-step-dot">4</span> Come back here, paste the link, and tap Download.</li>
+						<li><span class="pd-step-dot">5</span> Your file saves to your Photos or Downloads folder.</li>
+					</ol>
+				</div>
+				<div class="pd-split__media">
+					<?php pd_image_placeholder( '4x5', 'Pinterest mobile app tutorial', 'pinterest-app-download-guide.webp', '1200x1500px' ); ?>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     5. Downloading on a Computer
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-split">
+				<div class="pd-split__media">
+					<?php pd_image_placeholder( '16x9', 'Pinterest desktop browser tutorial', 'pinterest-desktop-download-guide.webp', '1600x900px' ); ?>
+				</div>
+				<div class="pd-split__text">
+					<div class="pd-eyebrow-icon"><?php pd_icon( 'device-monitor' ); ?></div>
+					<h2>Downloading on a Computer</h2>
+					<p>You can also download Pinterest videos on a computer, using any browser.</p>
+					<ol class="pd-steps-list">
+						<li><span class="pd-step-dot">1</span> Open Pinterest.com in your browser.</li>
+						<li><span class="pd-step-dot">2</span> Click the pin, then copy the link from your address bar.</li>
+						<li><span class="pd-step-dot">3</span> Paste it above and click Download.</li>
+						<li><span class="pd-step-dot">4</span> The file lands in your computer's Downloads folder.</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     6. How to Download Pinterest Videos on iPhone
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-split pd-split--reverse">
+				<div class="pd-split__text">
+					<div class="pd-eyebrow-icon"><?php pd_icon( 'device-phone' ); ?></div>
+					<h2>How to Download Pinterest Videos on iPhone</h2>
+					<p>Yes, PinsDownload works on iPhone. You don't need an app, just Safari and a Pinterest link.</p>
+					<ol class="pd-steps-list">
+						<li><span class="pd-step-dot">1</span> Open the Pinterest app on your iPhone.</li>
+						<li><span class="pd-step-dot">2</span> Tap the share icon on the video, then Copy Link.</li>
+						<li><span class="pd-step-dot">3</span> Open Safari and go to pinsdownload.org.</li>
+						<li><span class="pd-step-dot">4</span> Paste the link and tap Download.</li>
+						<li><span class="pd-step-dot">5</span> Save the video to your Photos app when it finishes.</li>
+					</ol>
+				</div>
+				<div class="pd-split__media">
+					<?php pd_image_placeholder( '4x5', 'iPhone Pinterest download tutorial', 'pinterest-iphone-download-guide.webp', '1200x1500px' ); ?>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     7. How to Download Pinterest Videos on Android
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-split">
+				<div class="pd-split__media">
+					<?php pd_image_placeholder( '4x5', 'Android Pinterest download tutorial', 'pinterest-android-download-guide.webp', '1200x1500px' ); ?>
+				</div>
+				<div class="pd-split__text">
+					<div class="pd-eyebrow-icon"><?php pd_icon( 'device-phone' ); ?></div>
+					<h2>How to Download Pinterest Videos on Android</h2>
+					<p>Yes, PinsDownload works on Android too, right inside Chrome.</p>
+					<ol class="pd-steps-list">
+						<li><span class="pd-step-dot">1</span> Open the Pinterest app and find your video.</li>
+						<li><span class="pd-step-dot">2</span> Tap Share, then Copy Link.</li>
+						<li><span class="pd-step-dot">3</span> Open Chrome and visit pinsdownload.org.</li>
+						<li><span class="pd-step-dot">4</span> Paste the link and tap Download.</li>
+						<li><span class="pd-step-dot">5</span> The video saves to your Gallery or Downloads folder.</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     8. What This Tool Can and Can't Download
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>What This Tool Can and Can't Download</h2>
+				<p>PinsDownload works with any public Pinterest link. It can't open anything that needs a Pinterest login.</p>
+			</div>
+			<div class="pd-wd-grid">
+				<div class="pd-wd-card pd-wd-card--yes">
+					<h3><?php pd_icon( 'check' ); ?> What Works</h3>
+					<ul>
+						<li><?php pd_icon( 'check' ); ?> Public pins and pin.it links</li>
+						<li><?php pd_icon( 'check' ); ?> Videos, images, GIFs, stories, carousels</li>
+						<li><?php pd_icon( 'check' ); ?> Public boards and profiles</li>
+						<li><?php pd_icon( 'check' ); ?> Idea Pins and Ideas pages</li>
+					</ul>
+				</div>
+				<div class="pd-wd-card pd-wd-card--no">
+					<h3><?php pd_icon( 'cross' ); ?> What Doesn't Work</h3>
+					<ul>
+						<li><?php pd_icon( 'cross' ); ?> Private or login-only pins</li>
+						<li><?php pd_icon( 'cross' ); ?> Deleted or removed pins</li>
+						<li><?php pd_icon( 'cross' ); ?> Invitation-only boards</li>
+						<li><?php pd_icon( 'cross' ); ?> Content you don't have rights to save</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     9. Why People Use This Tool
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Why People Use This Tool</h2>
+				<p>PinsDownload is built to be simple, honest, and free. Here's what that means in practice.</p>
+			</div>
+			<div class="pd-feature-grid">
+				<div class="pd-feature-card"><?php pd_icon( 'tag' ); ?><h3>Free, always.</h3><p>No hidden charges, no daily limit.</p></div>
+				<div class="pd-feature-card"><?php pd_icon( 'slash' ); ?><h3>No watermark.</h3><p>Your download looks exactly like the original.</p></div>
+				<div class="pd-feature-card"><?php pd_icon( 'lock' ); ?><h3>No login.</h3><p>We never ask for your Pinterest password.</p></div>
+				<div class="pd-feature-card"><?php pd_icon( 'spark' ); ?><h3>Original quality.</h3><p>Videos and images save in the same resolution Pinterest gives us.</p></div>
+				<div class="pd-feature-card"><?php pd_icon( 'globe' ); ?><h3>Works everywhere.</h3><p>Phone, tablet, or computer, any browser.</p></div>
+				<div class="pd-feature-card"><?php pd_icon( 'mega' ); ?><h3>Honest about ads.</h3><p>A small number of ads keep this tool free. They never sit on top of or look like the Download button.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     10. What Else You Can Download From Pinterest
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>What Else You Can Download From Pinterest</h2>
+				<p>PinsDownload isn't only for videos. It handles every kind of Pinterest content.</p>
+			</div>
+			<div class="pd-type-grid">
+				<div class="pd-type-card"><?php pd_icon( 'image' ); ?><strong>Images and photos</strong><span>save any pin in full resolution.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'gif' ); ?><strong>GIFs</strong><span>download animated pins without losing the loop.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'film' ); ?><strong>Reels and short videos</strong><span>grab Pinterest's short-form clips.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'layers' ); ?><strong>Stories and Idea Pins</strong><span>save every slide of a multi-page pin.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'grid' ); ?><strong>Carousels</strong><span>download every image or video in a multi-item pin.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'grid' ); ?><strong>Boards</strong><span>save up to 100 pins from a public board at once, or grab the whole thing as a ZIP file.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'user' ); ?><strong>Profiles</strong><span>download every public pin from a Pinterest profile.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'bulb' ); ?><strong>Ideas pages</strong><span>save content straight from a Pinterest Ideas collection.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'message' ); ?><strong>Answers pages</strong><span>download pins shared on a Pinterest Answers page.</span></div>
+				<div class="pd-type-card"><?php pd_icon( 'link' ); ?><strong>Shared pin links</strong><span>paste any multi-pin share link and download everything in it.</span></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     11. What Is a Pinterest Video Downloader?
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-split pd-split--reverse">
+				<div class="pd-split__text">
+					<div class="pd-eyebrow-icon"><?php pd_icon( 'bulb' ); ?></div>
+					<h2>What Is a Pinterest Video Downloader?</h2>
+					<p>A Pinterest video downloader is a free online tool that saves Pinterest videos, images, and GIFs to your device. Pinterest doesn't let you download videos directly from its app or website, so this tool reads the pin's link and gives you a direct file to save. You don't need an account, and nothing is stored on our end after your download finishes.</p>
+				</div>
+				<div class="pd-split__media">
+					<?php pd_image_placeholder( '1x1', 'Illustration: link in, file out', 'pinsdownload-how-it-works.webp', '1200x1200px' ); ?>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     12. What People Use It For
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>What People Use It For</h2>
+				<p>People download Pinterest content for all kinds of projects. Here are the most common ones.</p>
+			</div>
+			<div class="pd-tags-flow">
+				<?php
+				$pd_use_cases = array( 'Home décor ideas', 'Recipes and food photography', 'Fashion inspiration', 'DIY and craft projects', 'Wedding planning', 'Travel photos', 'Fitness routines', 'Study notes and aesthetics', 'Art references', 'Mood boards' );
+				foreach ( $pd_use_cases as $pd_case ) :
+					?>
+					<span class="pd-tag-pill"><?php echo esc_html( $pd_case ); ?></span>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     13. How This Compares to Other Downloaders
+	     ===================================================== -->
+	<!-- REVIEW REQUIRED:
+	     Section marked DUMMY in the source copy. Verify every
+	     comparison claim against the live tool before publishing.
+	-->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>How This Compares to Other Downloaders</h2>
+				<p>PinsDownload is built to beat the basics that most Pinterest downloaders get wrong.</p>
+			</div>
+			<div class="pd-table-scroll">
+				<table class="pd-compare">
+					<thead>
+						<tr>
+							<th></th>
+							<th class="pd-hl">PinsDownload</th>
+							<th>Typical Free Downloaders</th>
+							<th>Downloader Apps</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr><td>Quality</td><td class="pd-hl">Up to 4K</td><td>Often capped at 720p</td><td>Sometimes compressed</td></tr>
+						<tr><td>Watermark</td><td class="pd-hl">None</td><td>Usually none</td><td>Often adds app logo</td></tr>
+						<tr><td>Login needed</td><td class="pd-hl">No</td><td>No</td><td>Often yes</td></tr>
+						<tr><td>Speed</td><td class="pd-hl">Seconds</td><td>Slow, ad-heavy</td><td>Medium</td></tr>
+						<tr><td>Bulk/ZIP download</td><td class="pd-hl">Yes, up to 100 pins</td><td>Rare</td><td>Rare</td></tr>
+						<tr><td>Privacy</td><td class="pd-hl">Nothing stored</td><td>Varies</td><td>Often collects data</td></tr>
+					</tbody>
+				</table>
+			</div>
+			<p class="pd-review-note"><em>Every row in the PinsDownload column must be true and tested before this goes live.</em></p>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     14. Works on Every Device
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Works on Every Device</h2>
+				<p>PinsDownload runs in a browser, so it works on almost anything with an internet connection.</p>
+			</div>
+			<div class="pd-device-row">
+				<div class="pd-device-chip"><?php pd_icon( 'device-phone' ); ?><span><strong>Android</strong> Chrome, Firefox</span></div>
+				<div class="pd-device-chip"><?php pd_icon( 'device-phone' ); ?><span><strong>iPhone / iPad</strong> Safari, Chrome</span></div>
+				<div class="pd-device-chip"><?php pd_icon( 'device-monitor' ); ?><span><strong>Windows</strong> Chrome, Edge</span></div>
+				<div class="pd-device-chip"><?php pd_icon( 'device-monitor' ); ?><span><strong>Mac</strong> Safari, Chrome</span></div>
+				<div class="pd-device-chip"><?php pd_icon( 'device-terminal' ); ?><span><strong>Linux</strong> Firefox, Chrome</span></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     15. Is This Safe to Use?
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-info-card">
+				<div class="pd-eyebrow-icon"><?php pd_icon( 'shield' ); ?></div>
+				<h2>Is This Safe to Use?</h2>
+				<p>Yes. We never ask for your Pinterest username or password. You paste a public link, we fetch the file, and nothing you download is stored on our servers afterward. We use standard analytics to see which pages are useful, the same as most websites, but your download history stays private.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     16. Trust Badges
+	     ===================================================== -->
+	<!-- TRUST BADGE PLACEHOLDER
+	     Links already point at the real domain. They'll show "no
+	     data yet" until pinsdownload.org has been live and crawled
+	     for a few weeks — that's expected, not a bug.
+	-->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Check Our Current Reputation</h2>
+			</div>
+			<div class="pd-badge-grid">
+				<a class="pd-badge-card" href="https://transparencyreport.google.com/safe-browsing/search?url=pinsdownload.org" target="_blank" rel="noopener noreferrer">
+					<?php pd_icon( 'shield' ); ?>
+					<strong>Google Safe Browsing</strong>
+					<span class="pd-badge-status">Verification pending</span>
+				</a>
+				<a class="pd-badge-card" href="https://safeweb.norton.com/report?url=pinsdownload.org" target="_blank" rel="noopener noreferrer">
+					<?php pd_icon( 'shield' ); ?>
+					<strong>Norton Safe Web</strong>
+					<span class="pd-badge-status">Verification pending</span>
+				</a>
+				<a class="pd-badge-card" href="https://sitecheck.sucuri.net/results/pinsdownload.org" target="_blank" rel="noopener noreferrer">
+					<?php pd_icon( 'shield' ); ?>
+					<strong>Sucuri Scanner</strong>
+					<span class="pd-badge-status">Verification pending</span>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     17. Is It Legal to Download Pinterest Videos?
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-info-card">
+				<div class="pd-eyebrow-icon"><?php pd_icon( 'link' ); ?></div>
+				<h2>Is It Legal to Download Pinterest Videos?</h2>
+				<p>Downloading a Pinterest video for personal, offline use is generally fine. Reposting, selling, or reusing someone else's video without permission is not. Pinterest content belongs to the person who posted it, so always ask before using it publicly.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     18. What Users Say
+	     ===================================================== -->
+	<!-- TESTIMONIAL PLACEHOLDER
+	     Section marked DUMMY in the source copy. Do not publish
+	     fake names, ratings, dates, or quotes here — replace these
+	     three cards with 5-10 real reviews once available, or
+	     remove the section entirely until then.
+	-->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>What Users Say</h2>
+			</div>
+			<div class="pd-testi-grid">
+				<div class="pd-testi-card"><?php pd_icon( 'quote' ); ?><p>Real user review will appear here.</p></div>
+				<div class="pd-testi-card"><?php pd_icon( 'quote' ); ?><p>Real user review will appear here.</p></div>
+				<div class="pd-testi-card"><?php pd_icon( 'quote' ); ?><p>Real user review will appear here.</p></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     19. What's New
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head" style="margin-bottom:36px;">
+				<div class="pd-eyebrow-icon" style="margin-left:auto;margin-right:auto;"><?php pd_icon( 'clock' ); ?></div>
+				<h2>What's New</h2>
+			</div>
+			<div class="pd-timeline">
+				<div class="pd-timeline-item">
+					<p><strong>Aug 2026 — Launched:</strong> PinsDownload is live, with video, image, GIF, story, carousel, board, and profile downloads all working from day one.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     20. Guides & Tips
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Guides &amp; Tips</h2>
+			</div>
+			<div class="pd-card-row">
+				<!-- ARTICLE URL PLACEHOLDER: link once this guide is published -->
+				<div class="pd-placeholder-card"><strong>How to Download a Full Pinterest Board</strong><span>Guide not published yet</span></div>
+				<!-- ARTICLE URL PLACEHOLDER: link once this guide is published -->
+				<div class="pd-placeholder-card"><strong>Is Downloading Pinterest Content Legal?</strong><span>Guide not published yet</span></div>
+				<!-- ARTICLE URL PLACEHOLDER: link once this guide is published -->
+				<div class="pd-placeholder-card"><strong>PinsDownload vs Other Downloaders</strong><span>Guide not published yet</span></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     21. Frequently Asked Questions
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Frequently Asked Questions</h2>
+			</div>
+			<div class="pd-faq-list" id="pd-faq">
+				<?php foreach ( $pd_faq as $pd_pair ) : ?>
+					<div class="pd-faq-item">
+						<button type="button" class="pd-faq-q" aria-expanded="false">
+							<span><?php echo esc_html( $pd_pair[0] ); ?></span>
+							<?php pd_icon( 'chevron' ); ?>
+						</button>
+						<div class="pd-faq-a"><div><p><?php echo esc_html( $pd_pair[1] ); ?></p></div></div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     22. Quick Answers
+	     ===================================================== -->
+	<section class="pd-section pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Quick Answers</h2>
+			</div>
+			<div class="pd-qa-grid">
+				<div class="pd-qa-card"><strong>Can I download Pinterest GIFs?</strong><span>Yes, paste the GIF's link the same way as a video.</span></div>
+				<div class="pd-qa-card"><strong>Where do my downloads go?</strong><span>Your device's default Downloads folder, unless you choose another location.</span></div>
+				<div class="pd-qa-card"><strong>Does this cost anything?</strong><span>No, it's free with no limits on single downloads.</span></div>
+				<div class="pd-qa-card"><strong>Is this the same as a "pin saver"?</strong><span>Yes. PinsDownload works as a Pinterest saver too, paste any pin link and save it the same way.</span></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     23. Other Tools
+	     ===================================================== -->
+	<section class="pd-section">
+		<div class="pd-container pd-reveal">
+			<div class="pd-section-head">
+				<h2>Other Tools</h2>
+			</div>
+			<div class="pd-card-row">
+				<div class="pd-placeholder-card pd-placeholder-card--current"><strong>Pinterest Video Downloader</strong><span>You're here</span></div>
+				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
+				<div class="pd-placeholder-card"><strong>Pinterest Image Downloader</strong><span>Page not published yet</span></div>
+				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
+				<div class="pd-placeholder-card"><strong>Pinterest GIF Downloader</strong><span>Page not published yet</span></div>
+				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
+				<div class="pd-placeholder-card"><strong>Pinterest Story Downloader</strong><span>Page not published yet</span></div>
+				<!-- ARTICLE URL PLACEHOLDER: link once this tool page is published -->
+				<div class="pd-placeholder-card"><strong>Pinterest Board Downloader</strong><span>Page not published yet</span></div>
+			</div>
+		</div>
+	</section>
+
+	<!-- =====================================================
+	     FINAL CTA
+	     ===================================================== -->
+	<section class="pd-cta pd-band--soft">
+		<div class="pd-container pd-reveal">
+			<h2>Ready to Download?</h2>
+			<p>Paste a Pinterest link above and get your file in seconds.</p>
+			<a href="#pdl-tool" class="pd-btn-primary pd-scroll-top" id="pd-cta-scroll">
+				<?php pd_icon( 'arrow' ); ?> Back to the Downloader
+			</a>
+		</div>
+	</section>
+
+</div>
+
+<script>
+(function () {
+	'use strict';
+
+	var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	/* Tool form loading state */
+	var form = document.getElementById('pdl-form');
+	if (form) {
+		form.addEventListener('submit', function () {
+			var btn = form.querySelector('.pdl-button');
+			var loading = document.getElementById('pdl-loading');
+			if (btn) {
+				btn.disabled = true;
+				btn.innerText = 'Fetching...';
+			}
+			if (loading) {
+				loading.style.display = 'block';
+			}
+		});
+	}
+
+	/* FAQ accordion */
+	var faqButtons = document.querySelectorAll('.pd-faq-q');
+	faqButtons.forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var item = btn.closest('.pd-faq-item');
+			var isOpen = item.getAttribute('data-open') === 'true';
+			item.setAttribute('data-open', isOpen ? 'false' : 'true');
+			btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+		});
+	});
+
+	/* Smooth scroll to tool from final CTA */
+	var ctaScroll = document.getElementById('pd-cta-scroll');
+	if (ctaScroll) {
+		ctaScroll.addEventListener('click', function (e) {
+			var target = document.getElementById('pdl-tool');
+			if (target) {
+				e.preventDefault();
+				target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+			}
+		});
+	}
+
+	/* Scroll reveal */
+	var reveals = document.querySelectorAll('.pd-reveal');
+	if (reduceMotion || !('IntersectionObserver' in window)) {
+		reveals.forEach(function (el) { el.classList.add('pd-in-view'); });
+	} else {
+		var observer = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					entry.target.classList.add('pd-in-view');
+					observer.unobserve(entry.target);
+				}
+			});
+		}, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+		reveals.forEach(function (el) { observer.observe(el); });
+	}
+})();
+</script>
+
+<?php
+/* =========================================================
+   SCHEMA — SoftwareApplication, HowTo, FAQPage. No ratings/
+   reviews are included since no real testimonials exist yet.
+========================================================= */
+$pd_schema_software = array(
+	'@context'          => 'https://schema.org',
+	'@type'             => 'SoftwareApplication',
+	'name'              => 'PinsDownload',
+	'applicationCategory' => 'MultimediaApplication',
+	'operatingSystem'   => 'Any (web-based)',
+	'url'               => home_url( '/' ),
+	'offers'            => array(
+		'@type'         => 'Offer',
+		'price'         => '0',
+		'priceCurrency' => 'USD',
+	),
+	'description'       => 'Download Pinterest videos, images, and GIFs in HD for free with PinsDownload. No login, no watermark, no app needed.',
+);
+
+$pd_schema_howto = array(
+	'@context'    => 'https://schema.org',
+	'@type'       => 'HowTo',
+	'name'        => 'How to Download a Pinterest Video',
+	'step'        => array(
+		array(
+			'@type' => 'HowToStep',
+			'text'  => 'Open Pinterest and find the video you want.',
+		),
+		array(
+			'@type' => 'HowToStep',
+			'text'  => 'Tap the share icon and choose "Copy Link."',
+		),
+		array(
+			'@type' => 'HowToStep',
+			'text'  => 'Paste the link above and tap Download.',
+		),
+	),
+);
+
+$pd_schema_faq_items = array();
+foreach ( $pd_faq as $pd_pair ) {
+	$pd_schema_faq_items[] = array(
+		'@type'          => 'Question',
+		'name'           => $pd_pair[0],
+		'acceptedAnswer' => array(
+			'@type' => 'Answer',
+			'text'  => $pd_pair[1],
+		),
+	);
+}
+$pd_schema_faq = array(
+	'@context'   => 'https://schema.org',
+	'@type'      => 'FAQPage',
+	'mainEntity' => $pd_schema_faq_items,
+);
+?>
+<script type="application/ld+json"><?php echo wp_json_encode( $pd_schema_software ); ?></script>
+<script type="application/ld+json"><?php echo wp_json_encode( $pd_schema_howto ); ?></script>
+<script type="application/ld+json"><?php echo wp_json_encode( $pd_schema_faq ); ?></script>
+
+<?php
+get_footer();
