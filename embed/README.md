@@ -35,6 +35,17 @@ PinsDownload homepage copy the moment the page loads after both files
 above are in place. Purge any page cache and reload if you don't see
 it fill in.
 
+**This auto-fill only ever happens once, ever, on purpose** — so
+clearing a section later never gets silently refilled and overwrite
+an edit you meant to keep. If you deliberately empty the whole page
+and want the starter content back, don't just re-upload the files —
+that alone won't bring it back, since what's blocking it lives in the
+database, not the file. Instead, look for a blue **"PinsDownload:
+Reset homepage content to the starter copy"** notice at the top of
+the Dashboard, the Pages list, or the homepage Page's own edit
+screen (only shown to editors, and only while a static homepage is
+set) — click it, confirm, and it refills immediately.
+
 **If you already have an older `front-page.php` or `pinsdownload-editable-sections.php` / `page-tool-landing.php` installed from
 an earlier round** — delete/deactivate those. This version replaces
 all of that with a much simpler two-file setup (see "Why this got

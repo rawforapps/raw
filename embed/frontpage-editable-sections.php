@@ -540,6 +540,65 @@ function pd_maybe_seed_homepage_content() {
 	update_post_meta( $post->ID, '_pd_content_seeded', 1 );
 }
 
+/* =========================================================
+   MANUAL RESET — a small wp-admin button, for when you've cleared
+   the homepage content yourself and want the starter content back.
+   The auto-seed above only ever fires once, on purpose, so it won't
+   do this automatically — this is the deliberate, explicit way to
+   ask for it again. Shows up on the Dashboard, the Pages list, and
+   the homepage Page's own edit screen.
+========================================================= */
+
+add_action( 'admin_notices', 'pd_reseed_admin_notice' );
+
+function pd_reseed_admin_notice() {
+	if ( ! current_user_can( 'edit_posts' ) || ! function_exists( 'get_current_screen' ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen ) {
+		return;
+	}
+	$front_id = (int) get_option( 'page_on_front' );
+	if ( ! $front_id ) {
+		return;
+	}
+	$on_this_page = ( 'page' === $screen->id && isset( $_GET['post'] ) && (int) $_GET['post'] === $front_id ); // phpcs:ignore -- read-only, display logic only.
+	if ( 'dashboard' !== $screen->id && 'edit-page' !== $screen->id && ! $on_this_page ) {
+		return;
+	}
+	$url = wp_nonce_url( admin_url( 'admin-post.php?action=pd_reseed_homepage' ), 'pd_reseed_homepage' );
+	?>
+	<div class="notice notice-info is-dismissible">
+		<p>
+			<strong>PinsDownload:</strong>
+			<a href="<?php echo esc_url( $url ); ?>" onclick="return confirm('This replaces the current homepage content with the default PinsDownload starter content — anything on the page right now will be overwritten. Continue?');">Reset homepage content to the starter copy</a>
+			— use this only if the homepage looks empty or broken and you want to start fresh.
+		</p>
+	</div>
+	<?php
+}
+
+add_action( 'admin_post_pd_reseed_homepage', 'pd_handle_reseed_homepage' );
+
+function pd_handle_reseed_homepage() {
+	if ( ! current_user_can( 'edit_posts' ) || ! check_admin_referer( 'pd_reseed_homepage' ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'pinsdownload' ) );
+	}
+	$front_id = (int) get_option( 'page_on_front' );
+	if ( $front_id ) {
+		wp_update_post(
+			array(
+				'ID'           => $front_id,
+				'post_content' => pd_default_homepage_markup(),
+			)
+		);
+		update_post_meta( $front_id, '_pd_content_seeded', 1 );
+	}
+	wp_safe_redirect( $front_id ? get_edit_post_link( $front_id, '' ) : admin_url() );
+	exit;
+}
+
 function pd_default_homepage_markup() {
 
 	$h2 = function ( $text ) {
