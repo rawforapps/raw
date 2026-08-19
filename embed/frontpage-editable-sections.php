@@ -106,6 +106,19 @@ function pd_output_styles() {
 	--pd-ease: cubic-bezier(.22,.9,.36,1);
 	--pd-max: 1200px;
 
+	/* Section-heading icon set — plain stroked line icons (feather-style),
+	   referenced by nth-of-type below so every H2 gets a distinct badge
+	   with zero markup changes required in the editor. */
+	--pd-icon-download: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E");
+	--pd-icon-phone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='2' width='14' height='20' rx='2' ry='2'/%3E%3Cline x1='12' y1='18' x2='12.01' y2='18'/%3E%3C/svg%3E");
+	--pd-icon-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+	--pd-icon-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/%3E%3C/svg%3E");
+	--pd-icon-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E");
+	--pd-icon-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E");
+	--pd-icon-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E");
+	--pd-icon-link: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");
+	--pd-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+
 	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 	color: var(--pd-dark);
 	background: var(--pd-bg);
@@ -192,9 +205,51 @@ function pd_output_styles() {
    looks on-brand with zero special markup required. */
 .pd-content { max-width: 900px; margin: 0 auto; }
 .pd-content > *:first-child { margin-top: 0; }
-.pd-content h2, .pd-content .wp-block-heading:is(h2) { position: relative; font-size: clamp(26px, 3.4vw, 38px); margin: 64px 0 22px; text-align: center; padding-top: 22px; }
-.pd-content h2::before, .pd-content .wp-block-heading:is(h2)::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 46px; height: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--pd-red-light), var(--pd-red)); }
-.pd-content h2:first-child { margin-top: 0; }
+
+/* Section bands — added by JS only (progressive enhancement): every
+   H2 and the content that follows it, up to the next H2, gets
+   wrapped in a .pd-band. Alternating tint gives each section a
+   visible boundary instead of one long uniform column. Without JS,
+   .pd-band is simply never added and everything still renders fine,
+   just without the alternation. */
+.pd-band { border-radius: 28px; }
+.pd-band.pd-band-b { background: var(--pd-bg-soft); margin: 0 -28px 8px; padding: 8px 28px 40px; }
+.pd-band.pd-band-b h2, .pd-band.pd-band-b .wp-block-heading:is(h2) { margin-top: 40px; }
+@media (max-width: 640px) { .pd-band.pd-band-b { margin: 0 -14px 8px; padding: 8px 14px 32px; } }
+.pd-content h2, .pd-content .wp-block-heading:is(h2) { position: relative; font-size: clamp(26px, 3.4vw, 38px); margin: 70px 0 22px; text-align: center; padding-top: 58px; }
+.pd-content > h2:first-child, .pd-content > .wp-block-heading:is(h2):first-child, .pd-content h2.pd-h2-first { margin-top: 0; }
+
+/* Section icon badge — a small circular icon above every H2, cycling
+   through 8 icons by position so each section reads as visually
+   distinct even though the underlying markup is plain headings. */
+.pd-content h2::before, .pd-content .wp-block-heading:is(h2)::before {
+	content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+	width: 48px; height: 48px; border-radius: 15px;
+	background: linear-gradient(135deg, #fff, var(--pd-red-tint));
+	border: 1px solid var(--pd-border); box-shadow: var(--pd-shadow);
+}
+.pd-content h2::after, .pd-content .wp-block-heading:is(h2)::after {
+	content: ""; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+	width: 24px; height: 24px; background-color: var(--pd-red);
+	-webkit-mask-image: var(--pd-icon-download); mask-image: var(--pd-icon-download);
+	-webkit-mask-size: contain; mask-size: contain;
+	-webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+	-webkit-mask-position: center; mask-position: center;
+}
+/* Icon per heading: JS (above) tags each H2 with .pd-h2-icon-1..8
+   based on its position, which stays correct even after the
+   section-band wrapping moves things around (position-based
+   :nth-of-type would not — a wrapped heading is always "first" among
+   its new siblings). Without JS, every heading just keeps the
+   default download icon set above — a plain but harmless fallback. */
+.pd-content h2.pd-h2-icon-1::after { -webkit-mask-image: var(--pd-icon-download); mask-image: var(--pd-icon-download); }
+.pd-content h2.pd-h2-icon-2::after { -webkit-mask-image: var(--pd-icon-phone); mask-image: var(--pd-icon-phone); }
+.pd-content h2.pd-h2-icon-3::after { -webkit-mask-image: var(--pd-icon-image); mask-image: var(--pd-icon-image); }
+.pd-content h2.pd-h2-icon-4::after { -webkit-mask-image: var(--pd-icon-star); mask-image: var(--pd-icon-star); }
+.pd-content h2.pd-h2-icon-5::after { -webkit-mask-image: var(--pd-icon-grid); mask-image: var(--pd-icon-grid); }
+.pd-content h2.pd-h2-icon-6::after { -webkit-mask-image: var(--pd-icon-shield); mask-image: var(--pd-icon-shield); }
+.pd-content h2.pd-h2-icon-7::after { -webkit-mask-image: var(--pd-icon-chat); mask-image: var(--pd-icon-chat); }
+.pd-content h2.pd-h2-icon-8::after { -webkit-mask-image: var(--pd-icon-link); mask-image: var(--pd-icon-link); }
 .pd-content h3, .pd-content .wp-block-heading:is(h3) { font-size: clamp(18px, 2.2vw, 20px); margin: 22px 0 8px; }
 .pd-content > p { max-width: 680px; margin: 0 auto 16px; text-align: center; }
 .pd-content p { color: var(--pd-text-secondary); font-size: 16px; line-height: 1.75; }
@@ -242,13 +297,22 @@ function pd_output_styles() {
 
 /* Utility: pd-pill-list on a List — rounded chip row (feature strip, tags). */
 .pd-content ul.pd-pill-list { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; list-style: none; padding-left: 0; max-width: none; }
-.pd-content ul.pd-pill-list > li { background: #fff; border: 1px solid var(--pd-border); border-radius: 999px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; color: var(--pd-dark); transition: transform .2s var(--pd-ease), box-shadow .2s var(--pd-ease), border-color .2s ease, color .2s ease; }
+.pd-content ul.pd-pill-list > li { position: relative; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--pd-border); border-radius: 999px; padding: 10px 18px 10px 16px; font-size: 13.5px; font-weight: 600; color: var(--pd-dark); transition: transform .2s var(--pd-ease), box-shadow .2s var(--pd-ease), border-color .2s ease, color .2s ease; }
+.pd-content ul.pd-pill-list > li::before { content: ""; flex-shrink: 0; width: 14px; height: 14px; background-color: var(--pd-red); -webkit-mask-image: var(--pd-icon-check); mask-image: var(--pd-icon-check); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 .pd-content ul.pd-pill-list > li:hover { transform: translateY(-2px); box-shadow: var(--pd-shadow); border-color: var(--pd-red-tint); color: var(--pd-red); }
 
 /* Utility: pd-card-list on a List — card grid (content types, devices, guides...). */
-.pd-content ul.pd-card-list, .pd-content ol.pd-card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; list-style: none; padding-left: 0; max-width: none; }
-.pd-content .pd-card-list > li { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--pd-border); border-radius: 16px; padding: 18px; font-size: 14px; text-align: left; transition: transform .25s var(--pd-ease), box-shadow .25s var(--pd-ease), border-color .25s var(--pd-ease); }
+.pd-content ul.pd-card-list, .pd-content ol.pd-card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; list-style: none; padding-left: 0; max-width: none; counter-reset: pd-card; }
+.pd-content .pd-card-list > li { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--pd-border); border-radius: 16px; padding: 20px 18px 18px 54px; font-size: 14px; text-align: left; transition: transform .25s var(--pd-ease), box-shadow .25s var(--pd-ease), border-color .25s var(--pd-ease); counter-increment: pd-card; }
 .pd-content .pd-card-list > li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--pd-red-light), var(--pd-red)); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--pd-ease); }
+.pd-content .pd-card-list > li::after {
+	content: counter(pd-card, decimal-leading-zero);
+	position: absolute; top: 18px; left: 18px;
+	display: flex; align-items: center; justify-content: center;
+	width: 26px; height: 26px; border-radius: 9px;
+	background: var(--pd-red-tint); color: var(--pd-red);
+	font-size: 10.5px; font-weight: 800; letter-spacing: 0;
+}
 .pd-content .pd-card-list > li:hover { transform: translateY(-4px); box-shadow: var(--pd-shadow-hover); border-color: var(--pd-red-tint); }
 .pd-content .pd-card-list > li:hover::before { transform: scaleX(1); }
 .pd-content .pd-card-list > li strong { display: block; color: var(--pd-dark); margin-bottom: 4px; }
@@ -257,14 +321,26 @@ function pd_output_styles() {
 /* Utility: pd-callout on a Paragraph — centered bordered info card (safety, legal). */
 .pd-content p.pd-callout { position: relative; max-width: 800px; margin: 0 auto 16px; text-align: center; background: linear-gradient(180deg, #fff, var(--pd-bg-soft)); border: 1px solid var(--pd-border); border-top: 3px solid var(--pd-red); border-radius: var(--pd-radius-lg); padding: 38px 36px 34px; box-shadow: var(--pd-shadow); font-size: 16px; }
 
-/* Native Table block (comparison, works/doesn't if used as a table). */
+/* Native Table block (comparison, works/doesn't if used as a table).
+   Second column (th/td) is treated as "our product" and gets a
+   highlighted band down the table — the classic comparison-table
+   pattern, achieved with pure structural CSS (nth-child), no markup
+   changes required. */
 .pd-content .wp-block-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; margin: 0 0 18px; max-width: none; box-shadow: var(--pd-shadow); }
-.pd-content .wp-block-table table { width: 100%; border-collapse: collapse; min-width: 480px; margin: 0; }
-.pd-content .wp-block-table th, .pd-content .wp-block-table td { padding: 15px 16px; text-align: left; font-size: 14.5px; border-bottom: 1px solid var(--pd-border); }
+.pd-content .wp-block-table table { width: 100%; border-collapse: collapse; min-width: 520px; margin: 0; }
+.pd-content .wp-block-table th, .pd-content .wp-block-table td { padding: 15px 18px; text-align: left; font-size: 14.5px; border-bottom: 1px solid var(--pd-border); }
 .pd-content .wp-block-table thead th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--pd-text-muted); background: var(--pd-bg-soft); border-bottom: 1px solid var(--pd-border); }
 .pd-content .wp-block-table tbody tr { transition: background-color .15s ease; }
-.pd-content .wp-block-table tbody tr:hover { background-color: var(--pd-red-tint); }
+.pd-content .wp-block-table tbody tr:nth-child(even) td:not(:nth-child(2)) { background-color: var(--pd-bg-soft); }
+.pd-content .wp-block-table tbody tr:hover td:not(:nth-child(2)) { background-color: var(--pd-red-tint); }
 .pd-content .wp-block-table tbody tr:last-child td { border-bottom: 0; }
+.pd-content .wp-block-table th:nth-child(2), .pd-content .wp-block-table td:nth-child(2) { position: relative; background: linear-gradient(180deg, var(--pd-red-tint), #fff8f9); font-weight: 700; color: var(--pd-red-dark); box-shadow: inset 1px 0 0 #ffd7dd, inset -1px 0 0 #ffd7dd; }
+.pd-content .wp-block-table thead th:nth-child(2) { background: var(--pd-red); color: #fff; box-shadow: none; }
+/* One neutral pill style for both Yes/No — a row like "Login needed:
+   No" is a good answer, so this deliberately doesn't color-code by
+   Yes/No text (that would call the wrong ones green/red); it's just
+   a chip that makes the highlighted column easier to scan. */
+.pd-content .wp-block-table td .pd-pill-flag { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: #fff; color: var(--pd-red-dark); border: 1px solid #ffc7cf; }
 
 /* Native Media & Text block, if used for a how-to guide (image beside text). */
 .pd-content .wp-block-media-text { max-width: none; margin: 30px 0; border-radius: var(--pd-radius-md); overflow: hidden; }
@@ -278,12 +354,22 @@ function pd_output_styles() {
 .pd-content details.wp-block-details:first-of-type { border-top: 1px solid var(--pd-border); margin-top: 8px; }
 .pd-content details.wp-block-details:hover { background-color: var(--pd-bg-soft); }
 .pd-content details[open] { background-color: var(--pd-bg-soft); }
-.pd-content summary { cursor: pointer; list-style: none; padding: 18px 34px 18px 16px; font-weight: 600; font-size: 15.5px; color: var(--pd-dark); position: relative; text-align: left; transition: color .2s ease; }
+.pd-content summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 12px; padding: 16px 34px 16px 16px; font-weight: 600; font-size: 15.5px; color: var(--pd-dark); position: relative; text-align: left; transition: color .2s ease; }
+.pd-content details.wp-block-details { position: relative; }
+.pd-content summary::before { content: ""; flex-shrink: 0; width: 30px; height: 30px; border-radius: 9px; background-color: var(--pd-red-tint); }
+.pd-content details.wp-block-details::before {
+	content: ""; position: absolute; top: 22px; left: 23px; z-index: 1;
+	width: 16px; height: 16px; background-color: var(--pd-red);
+	-webkit-mask-image: var(--pd-icon-chat); mask-image: var(--pd-icon-chat);
+	-webkit-mask-size: contain; mask-size: contain;
+	-webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.pd-content summary::marker { display: none; }
 .pd-content summary:hover { color: var(--pd-red); }
 .pd-content summary::-webkit-details-marker { display: none; }
 .pd-content summary::after { content: ""; position: absolute; right: 12px; top: 50%; width: 9px; height: 9px; border-right: 2px solid var(--pd-red); border-bottom: 2px solid var(--pd-red); transform: translateY(-70%) rotate(45deg); transition: transform .25s var(--pd-ease); }
 .pd-content details[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
-.pd-content details p { padding: 0 16px 20px; margin: 0; text-align: left; max-width: none; }
+.pd-content details p { padding: 0 16px 20px 58px; margin: 0; text-align: left; max-width: none; }
 @media (prefers-reduced-motion: reduce) { .pd-content summary::after { transition: none; } }
 
 .pd-zone-missing { max-width: 820px; margin: 0 auto; padding: 16px 20px; border: 1px dashed var(--pd-border); border-radius: 12px; background: var(--pd-bg-soft); color: var(--pd-text-muted); font-size: 14px; text-align: center; }
@@ -312,6 +398,7 @@ function pd_output_scripts() {
 	echo <<<'JS'
 (function () {
 	'use strict';
+	var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	var form = document.getElementById('pdl-form');
 	if (form) {
 		form.addEventListener('submit', function () {
@@ -333,36 +420,79 @@ function pd_output_scripts() {
 			var target = document.getElementById('pdl-tool');
 			if (target) {
 				e.preventDefault();
-				var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 				target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
 			}
 		});
 	}
+
+	/* Section bands — progressive enhancement, purely presentational.
+	   Groups the content between one H2 and the next into a .pd-band
+	   wrapper so alternating sections can get a tinted background.
+	   Reads the live, already-rendered DOM every page load, so it can
+	   never drift out of sync with whatever's actually on the page —
+	   add, remove, or reorder sections in the editor and this just
+	   adapts. If this fails for any reason, .pd-content's children
+	   stay exactly as WordPress rendered them. */
+	var content = document.querySelector('.pd-content');
+	if (content) {
+		var kids = Array.prototype.slice.call(content.children);
+		var bands = [];
+		var current = null;
+		var h2count = 0;
+		kids.forEach(function (el) {
+			if (!current || el.tagName === 'H2') {
+				current = document.createElement('div');
+				current.className = 'pd-band';
+				bands.push(current);
+			}
+			if (el.tagName === 'H2') {
+				h2count++;
+				el.classList.add('pd-h2-icon-' + (((h2count - 1) % 8) + 1));
+				if (h2count === 1) {
+					el.classList.add('pd-h2-first');
+				}
+			}
+			current.appendChild(el);
+		});
+		bands.forEach(function (band, i) {
+			if (i % 2 === 1) {
+				band.classList.add('pd-band-b');
+			}
+			content.appendChild(band);
+		});
+	}
+
+	/* Comparison-table Yes/No pills — scans the second column's exact
+	   text and wraps a clean match in a colored pill span. Anything
+	   that isn't an exact "yes"/"no" is left as plain text, so this
+	   never mangles real sentences. */
+	document.querySelectorAll('.pd-content .wp-block-table td:nth-child(2)').forEach(function (cell) {
+		var text = cell.textContent.trim();
+		if (/^(yes|no)$/i.test(text)) {
+			cell.innerHTML = '<span class="pd-pill-flag">' + text + '</span>';
+		}
+	});
 
 	/* Scroll-reveal for the editable content — progressive
 	   enhancement only. If IntersectionObserver isn't available,
 	   this block does nothing and every element stays fully visible
 	   (the .pd-reveal class, which starts things at opacity: 0, is
 	   never added in that case). */
-	var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-	if (!reduceMotion && 'IntersectionObserver' in window) {
-		var content = document.querySelector('.pd-content');
-		if (content) {
-			var targets = content.querySelectorAll(':scope > *');
-			var observer = new IntersectionObserver(function (entries) {
-				entries.forEach(function (entry) {
-					if (entry.isIntersecting) {
-						entry.target.classList.add('pd-in-view');
-						observer.unobserve(entry.target);
-					}
-				});
-			}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-			targets.forEach(function (el, i) {
-				el.classList.add('pd-reveal');
-				el.style.transitionDelay = (Math.min(i % 3, 2) * 0.08) + 's';
-				observer.observe(el);
+	if (!reduceMotion && content && 'IntersectionObserver' in window) {
+		var targets = content.querySelectorAll(':scope > *');
+		var observer = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					entry.target.classList.add('pd-in-view');
+					observer.unobserve(entry.target);
+				}
 			});
-		}
+		}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+		targets.forEach(function (el, i) {
+			el.classList.add('pd-reveal');
+			el.style.transitionDelay = (Math.min(i % 3, 2) * 0.08) + 's';
+			observer.observe(el);
+		});
 	}
 })();
 JS;
@@ -681,7 +811,7 @@ function pd_handle_reseed_homepage() {
 function pd_default_homepage_markup() {
 
 	$h2 = function ( $text ) {
-		return "<!-- wp:heading -->\n<h2>" . $text . "</h2>\n<!-- /wp:heading -->\n\n";
+		return "<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">" . $text . "</h2>\n<!-- /wp:heading -->\n\n";
 	};
 	$p = function ( $text, $class = '' ) {
 		$attrs      = $class !== '' ? ' ' . wp_json_encode( array( 'className' => $class ) ) : '';
@@ -819,13 +949,13 @@ function pd_default_homepage_markup() {
 	/* 8. What This Tool Can and Can't Download — pd-good/pd-bad columns. */
 	$out .= $h2( "What This Tool Can and Can't Download" );
 	$out .= $p( "PinsDownload works with any public Pinterest link. It can't open anything that needs a Pinterest login." );
-	$works_inner   = "<!-- wp:heading {\"level\":3} -->\n<h3>&#10003; What Works</h3>\n<!-- /wp:heading -->\n\n" . $list( array(
+	$works_inner   = "<!-- wp:heading {\"level\":3} -->\n<h3>What Works</h3>\n<!-- /wp:heading -->\n\n" . $list( array(
 		'Public pins and pin.it links',
 		'Videos, images, GIFs, stories, carousels',
 		'Public boards and profiles',
 		'Idea Pins and Ideas pages',
 	) );
-	$doesnt_inner  = "<!-- wp:heading {\"level\":3} -->\n<h3>&#10007; What Doesn't Work</h3>\n<!-- /wp:heading -->\n\n" . $list( array(
+	$doesnt_inner  = "<!-- wp:heading {\"level\":3} -->\n<h3>What Doesn't Work</h3>\n<!-- /wp:heading -->\n\n" . $list( array(
 		'Private or login-only pins',
 		'Deleted or removed pins',
 		'Invitation-only boards',

@@ -91,6 +91,26 @@ editor to see a live example:
 | `pd-card-list` | List | Renders as a responsive card grid |
 | `pd-callout` | Paragraph | Centered, bordered info card (the Safety/Legal look) |
 
+**All of this is now handled automatically, with zero extra fields to
+fill in:**
+
+- **Every Heading (H2) gets a small icon badge above it**, cycling
+  through 8 icons by position — purely decorative, no editor field to
+  set.
+- **Sections alternate a light tinted background** (added by a small
+  script that groups the content between one H2 and the next — if
+  JavaScript is off for any reason, the page still renders fine, just
+  without the alternating tint).
+- **List items in `pd-card-list`/`pd-pill-list` get a small icon or
+  number badge**, and column cards, the comparison table, and the FAQ
+  accordion all get hover states and a bit more depth.
+- **In a Table block, the second column is treated as "our product"**
+  and gets a highlighted band down the table (the classic
+  comparison-table look) — put your product's column second. Exact
+  `Yes`/`No` cells in that column also get turned into a small pill
+  automatically (deliberately not colored green/red for "good/bad" —
+  a "No" answer is sometimes the right one, e.g. "Login needed: No").
+
 **Fixed, not part of the editable content** — the site header/footer
 (your theme's own); the Hero's eyebrow, H1, and subtitle (one H1 per
 page, tightly bound to the tool right under it); the downloader tool
