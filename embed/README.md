@@ -64,6 +64,22 @@ WordPress function every theme uses for every page, nothing custom.
   want it. Add a brand new one the same way — type a Heading, then
   whatever content belongs under it.
 
+**Optional visual polish — still the same native mechanism, zero
+custom code.** Every block has an "Additional CSS class(es)" field
+(select the block → right sidebar → **Advanced**). Add one of these
+and the block gets extra styling automatically — this is exactly how
+the prefilled content below is built, so open any section in the
+editor to see a live example:
+
+| Class | On this block | Effect |
+|---|---|---|
+| `pd-steps` | Columns | Auto-numbers each column 01/02/03… with a connecting line (the "Quick Steps" look) |
+| `pd-good` | a Column | Green-tinted "this works" card |
+| `pd-bad` | a Column | Soft-red "this doesn't" card |
+| `pd-pill-list` | List | Renders as rounded pill chips in a row |
+| `pd-card-list` | List | Renders as a responsive card grid |
+| `pd-callout` | Paragraph | Centered, bordered info card (the Safety/Legal look) |
+
 **Fixed, not part of the editable content** — the site header/footer
 (your theme's own); the Hero's eyebrow, H1, and subtitle (one H1 per
 page, tightly bound to the tool right under it); the downloader tool
@@ -73,13 +89,14 @@ page is yours.
 
 ## What's prefilled on first load
 
-The full homepage copy — feature strip, three-step explainer, all
-four device how-to guides (with an image-block hint under each,
-ready for a real screenshot), what works/doesn't (as a Table block),
-why people use it (as two rows of card-style Columns), everything
-else you can download, what it is / what it's for / is it legal,
-the comparison table (Table block, marked REVIEW REQUIRED — verify
-every claim before launch), device compatibility, safety, trust
+The full homepage copy — feature strip (pill chips), the numbered
+three-step explainer, all four device how-to guides (with an
+image-block hint under each, ready for a real screenshot), what
+works/doesn't (green/red card columns), why people use it (two rows
+of card-style Columns), everything else you can download (card
+grid), what it is / what it's for / is it legal (callout cards), the
+comparison table (Table block, marked REVIEW REQUIRED — verify every
+claim before launch), device compatibility (card grid), safety, trust
 badges (real links, already pointed at pinsdownload.org), what's new,
 guides & tips, all 12 FAQ items (as native Details blocks), quick
 answers, and other tools. Two things are deliberately **not**

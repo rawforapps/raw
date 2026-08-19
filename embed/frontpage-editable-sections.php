@@ -30,6 +30,24 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   core block, expands/collapses with zero custom JavaScript, nothing
  *   can get out of sync because there's nothing custom to parse.
  *
+ * OPTIONAL POLISH — same native mechanism, zero custom code: every
+ * block in the editor has an "Additional CSS class(es)" field
+ * (select the block -> right sidebar -> Advanced). Add one of these
+ * and the block picks up extra styling automatically:
+ *
+ *   pd-steps       on a Columns block   -> auto-numbers each column
+ *                                          01/02/03... with a
+ *                                          connecting line (the
+ *                                          "Quick Steps" look)
+ *   pd-good        on a Column          -> green-tinted "this works" card
+ *   pd-bad         on a Column          -> soft-red "this doesn't" card
+ *   pd-pill-list   on a List block      -> renders as rounded pill chips
+ *   pd-card-list   on a List block      -> renders as a card grid
+ *   pd-callout     on a Paragraph block -> centered, bordered info card
+ *
+ * These are exactly how the prefilled content below is built — open
+ * any prefilled section in the editor to see a live example of each.
+ *
  * The first time this runs, if the homepage Page is completely
  * empty, it fills in with the full PinsDownload homepage copy —
  * every section, prefilled, ready to tweak — so you start from real
@@ -140,43 +158,85 @@ function pd_output_styles() {
    Targets native block classes so ordinary editing (headings,
    paragraphs, lists, images, tables, columns, details/FAQ) always
    looks on-brand with zero special markup required. */
-.pd-content { max-width: 820px; margin: 0 auto; }
+.pd-content { max-width: 900px; margin: 0 auto; }
 .pd-content > *:first-child { margin-top: 0; }
-.pd-content h2, .pd-content .wp-block-heading:is(h2) { font-size: clamp(24px, 3.2vw, 34px); margin: 46px 0 16px; }
+.pd-content h2, .pd-content .wp-block-heading:is(h2) { font-size: clamp(26px, 3.4vw, 38px); margin: 52px 0 18px; text-align: center; }
 .pd-content h2:first-child { margin-top: 0; }
-.pd-content h3, .pd-content .wp-block-heading:is(h3) { font-size: clamp(19px, 2.4vw, 22px); margin: 26px 0 10px; }
-.pd-content p { margin: 0 0 16px; color: var(--pd-text-secondary); font-size: 16px; line-height: 1.75; }
-.pd-content > p:first-of-type { text-align: center; font-weight: 600; color: var(--pd-dark); padding: 18px 20px; background: var(--pd-bg-soft); border-radius: 14px; }
-.pd-content ol, .pd-content ul { padding-left: 22px; margin: 0 0 18px; color: var(--pd-text-secondary); }
+.pd-content h3, .pd-content .wp-block-heading:is(h3) { font-size: clamp(18px, 2.2vw, 20px); margin: 22px 0 8px; }
+.pd-content > p { max-width: 680px; margin: 0 auto 16px; text-align: center; }
+.pd-content p { color: var(--pd-text-secondary); font-size: 16px; line-height: 1.75; }
+.pd-content ol, .pd-content ul { padding-left: 22px; margin: 0 auto 18px; color: var(--pd-text-secondary); max-width: 680px; }
 .pd-content li { padding: 3px 0; line-height: 1.7; }
 .pd-content a { color: var(--pd-red); text-decoration: underline; text-underline-offset: 2px; }
 .pd-content strong { color: var(--pd-dark); }
 .pd-content img { border-radius: var(--pd-radius-md); box-shadow: var(--pd-shadow); max-width: 100%; height: auto; }
-.pd-content .wp-block-image, .pd-content .wp-block-gallery { margin: 22px 0; }
+.pd-content .wp-block-image, .pd-content .wp-block-gallery { margin: 22px auto; }
 .pd-content figcaption { text-align: center; font-size: 13px; color: var(--pd-text-muted); margin-top: 8px; }
 .pd-content em { color: var(--pd-text-muted); }
 
-.pd-content .wp-block-columns { gap: 20px; margin: 22px 0; }
-.pd-content .wp-block-column { background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md); padding: 24px; transition: transform .2s ease, box-shadow .2s ease; }
+/* Columns -> card grid (Features, Quick Steps, Works/Doesn't...) */
+.pd-content .wp-block-columns { gap: 20px; margin: 30px 0; max-width: none; }
+.pd-content .wp-block-column { background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-md); padding: 26px; text-align: left; transition: transform .2s ease, box-shadow .2s ease; }
 .pd-content .wp-block-column:hover { transform: translateY(-3px); box-shadow: var(--pd-shadow-hover); }
-.pd-content .wp-block-column .wp-block-heading, .pd-content .wp-block-column h3 { margin-top: 0; font-size: 16.5px; }
+.pd-content .wp-block-column .wp-block-heading, .pd-content .wp-block-column h3 { margin-top: 0; font-size: 16.5px; text-align: left; }
+.pd-content .wp-block-column p { text-align: left; max-width: none; margin: 0 auto; }
 .pd-content .wp-block-column p:last-child { margin-bottom: 0; font-size: 14px; }
 @media (max-width: 700px) { .pd-content .wp-block-columns { flex-wrap: wrap; } }
 
-.pd-content .wp-block-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; margin: 0 0 18px; }
+/* Utility: pd-steps on a Columns block — auto-numbers 01/02/03 with a connecting line. */
+.pd-content .wp-block-columns.pd-steps { counter-reset: pd-step; position: relative; margin-top: 46px; }
+.pd-content .wp-block-columns.pd-steps::before { content: ""; position: absolute; top: 40px; left: 17%; right: 17%; height: 2px; background: linear-gradient(90deg, var(--pd-red-tint), var(--pd-border), var(--pd-red-tint)); z-index: 0; }
+.pd-content .wp-block-columns.pd-steps > .wp-block-column { counter-increment: pd-step; position: relative; z-index: 1; }
+.pd-content .wp-block-columns.pd-steps > .wp-block-column::before {
+	content: counter(pd-step, decimal-leading-zero);
+	display: flex; align-items: center; justify-content: center;
+	width: 34px; height: 34px; margin-bottom: 14px;
+	border-radius: 50%; background: var(--pd-red-tint); color: var(--pd-red);
+	font-weight: 800; font-size: 13px;
+}
+
+/* Utility: pd-good / pd-bad on a Column — the "what works / doesn't" look. */
+.pd-content .wp-block-column.pd-good { background: #fff; border-color: #bfe6cc; }
+.pd-content .wp-block-column.pd-good .wp-block-heading, .pd-content .wp-block-column.pd-good h3 { color: #1a7a3c; }
+.pd-content .wp-block-column.pd-bad { background: var(--pd-bg-soft); border-color: #f3c9c9; }
+.pd-content .wp-block-column.pd-bad .wp-block-heading, .pd-content .wp-block-column.pd-bad h3 { color: #a03; }
+.pd-content .wp-block-column.pd-good:hover, .pd-content .wp-block-column.pd-bad:hover { transform: none; box-shadow: none; }
+
+/* Utility: pd-pill-list on a List — rounded chip row (feature strip, tags). */
+.pd-content ul.pd-pill-list { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; list-style: none; padding-left: 0; max-width: none; }
+.pd-content ul.pd-pill-list > li { background: #fff; border: 1px solid var(--pd-border); border-radius: 999px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; color: var(--pd-dark); }
+
+/* Utility: pd-card-list on a List — card grid (content types, devices, guides...). */
+.pd-content ul.pd-card-list, .pd-content ol.pd-card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; list-style: none; padding-left: 0; max-width: none; }
+.pd-content .pd-card-list > li { background: #fff; border: 1px solid var(--pd-border); border-radius: 16px; padding: 18px; font-size: 14px; text-align: left; transition: transform .2s ease, box-shadow .2s ease; }
+.pd-content .pd-card-list > li:hover { transform: translateY(-3px); box-shadow: var(--pd-shadow); }
+.pd-content .pd-card-list > li strong { display: block; color: var(--pd-dark); margin-bottom: 4px; }
+
+/* Utility: pd-callout on a Paragraph — centered bordered info card (safety, legal). */
+.pd-content p.pd-callout { max-width: 800px; margin: 0 auto 16px; text-align: center; background: #fff; border: 1px solid var(--pd-border); border-radius: var(--pd-radius-lg); padding: 36px; box-shadow: var(--pd-shadow); font-size: 16px; }
+
+/* Native Table block (comparison, works/doesn't if used as a table). */
+.pd-content .wp-block-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--pd-radius-md); border: 1px solid var(--pd-border); background: #fff; margin: 0 0 18px; max-width: none; }
 .pd-content .wp-block-table table { width: 100%; border-collapse: collapse; min-width: 480px; margin: 0; }
 .pd-content .wp-block-table th, .pd-content .wp-block-table td { padding: 14px 16px; text-align: left; font-size: 14.5px; border-bottom: 1px solid var(--pd-border); }
 .pd-content .wp-block-table thead th { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--pd-text-muted); background: var(--pd-bg-soft); }
 .pd-content .wp-block-table tbody tr:last-child td { border-bottom: 0; }
 
+/* Native Media & Text block, if used for a how-to guide (image beside text). */
+.pd-content .wp-block-media-text { max-width: none; margin: 30px 0; border-radius: var(--pd-radius-md); overflow: hidden; }
+.pd-content .wp-block-media-text .wp-block-media-text__media img { border-radius: 0; box-shadow: none; height: 100%; object-fit: cover; }
+.pd-content .wp-block-media-text .wp-block-media-text__content { padding: 0 0 0 32px; display: flex; flex-direction: column; justify-content: center; }
+.pd-content .wp-block-media-text.has-media-on-the-right .wp-block-media-text__content { padding: 0 32px 0 0; }
+@media (max-width: 600px) { .pd-content .wp-block-media-text .wp-block-media-text__content, .pd-content .wp-block-media-text.has-media-on-the-right .wp-block-media-text__content { padding: 24px 0 0; } }
+
 /* Native "Details" block = FAQ accordion. No JS needed. */
-.pd-content details.wp-block-details { border-bottom: 1px solid var(--pd-border); }
+.pd-content details.wp-block-details { border-bottom: 1px solid var(--pd-border); max-width: 680px; margin-left: auto; margin-right: auto; }
 .pd-content details.wp-block-details:first-of-type { border-top: 1px solid var(--pd-border); margin-top: 8px; }
-.pd-content summary { cursor: pointer; list-style: none; padding: 18px 30px 18px 4px; font-weight: 600; font-size: 15.5px; color: var(--pd-dark); position: relative; }
+.pd-content summary { cursor: pointer; list-style: none; padding: 18px 30px 18px 4px; font-weight: 600; font-size: 15.5px; color: var(--pd-dark); position: relative; text-align: left; }
 .pd-content summary::-webkit-details-marker { display: none; }
 .pd-content summary::after { content: ""; position: absolute; right: 4px; top: 50%; width: 9px; height: 9px; border-right: 2px solid var(--pd-red); border-bottom: 2px solid var(--pd-red); transform: translateY(-70%) rotate(45deg); transition: transform .2s ease; }
 .pd-content details[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
-.pd-content details p { padding: 0 4px 18px; margin: 0; }
+.pd-content details p { padding: 0 4px 18px; margin: 0; text-align: left; max-width: none; }
 
 .pd-zone-missing { max-width: 820px; margin: 0 auto; padding: 16px 20px; border: 1px dashed var(--pd-border); border-radius: 12px; background: var(--pd-bg-soft); color: var(--pd-text-muted); font-size: 14px; text-align: center; }
 
@@ -485,26 +545,49 @@ function pd_default_homepage_markup() {
 	$h2 = function ( $text ) {
 		return "<!-- wp:heading -->\n<h2>" . $text . "</h2>\n<!-- /wp:heading -->\n\n";
 	};
-	$p = function ( $text ) {
-		return "<!-- wp:paragraph -->\n<p>" . $text . "</p>\n<!-- /wp:paragraph -->\n\n";
+	$p = function ( $text, $class = '' ) {
+		$attrs      = $class !== '' ? ' ' . wp_json_encode( array( 'className' => $class ) ) : '';
+		$class_attr = $class !== '' ? ' class="' . esc_attr( $class ) . '"' : '';
+		return "<!-- wp:paragraph$attrs -->\n<p$class_attr>" . $text . "</p>\n<!-- /wp:paragraph -->\n\n";
 	};
 	$hint = function ( $text ) {
 		return "<!-- wp:paragraph {\"placeholder\":true} -->\n<p><em>" . $text . '</em></p>' . "\n<!-- /wp:paragraph -->\n\n";
 	};
-	$list = function ( $items, $ordered = false ) {
-		$attrs = $ordered ? ' {"ordered":true}' : '';
-		$tag   = $ordered ? 'ol' : 'ul';
-		$html  = "<!-- wp:list$attrs -->\n<$tag>";
+	$list = function ( $items, $ordered = false, $class = '' ) {
+		$tag       = $ordered ? 'ol' : 'ul';
+		$attrs_arr = array();
+		if ( $ordered ) {
+			$attrs_arr['ordered'] = true;
+		}
+		if ( $class !== '' ) {
+			$attrs_arr['className'] = $class;
+		}
+		$attrs      = ! empty( $attrs_arr ) ? ' ' . wp_json_encode( $attrs_arr ) : '';
+		$class_attr = $class !== '' ? ' class="' . esc_attr( $class ) . '"' : '';
+		$html       = "<!-- wp:list$attrs -->\n<$tag$class_attr>";
 		foreach ( $items as $item ) {
 			$html .= '<li>' . $item . '</li>';
 		}
 		$html .= "</$tag>\n<!-- /wp:list -->\n\n";
 		return $html;
 	};
-	$col = function ( $title, $text ) {
-		return "<!-- wp:column -->\n<div class=\"wp-block-column\">\n<!-- wp:heading {\"level\":3} -->\n<h3>$title</h3>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>$text</p>\n<!-- /wp:paragraph -->\n</div>\n<!-- /wp:column -->\n\n";
+	/* A single Column, given arbitrary inner block HTML, with an optional
+	   "Additional CSS class" (pd-good / pd-bad, same field the editor exposes). */
+	$column = function ( $inner, $class = '' ) {
+		$attrs      = $class !== '' ? ' ' . wp_json_encode( array( 'className' => $class ) ) : '';
+		$class_attr = 'wp-block-column' . ( $class !== '' ? ' ' . esc_attr( $class ) : '' );
+		return "<!-- wp:column$attrs -->\n<div class=\"$class_attr\">\n" . $inner . "</div>\n<!-- /wp:column -->\n\n";
 	};
-	$columns_open  = "<!-- wp:columns -->\n<div class=\"wp-block-columns\">\n";
+	/* A Column pre-filled with a Heading (H3) + Paragraph — the "feature card" shape. */
+	$feature_col = function ( $title, $text, $class = '' ) use ( $column ) {
+		$inner = "<!-- wp:heading {\"level\":3} -->\n<h3>$title</h3>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph -->\n<p>$text</p>\n<!-- /wp:paragraph -->\n";
+		return $column( $inner, $class );
+	};
+	$columns_open = function ( $class = '' ) {
+		$attrs      = $class !== '' ? ' ' . wp_json_encode( array( 'className' => $class ) ) : '';
+		$class_attr = 'wp-block-columns' . ( $class !== '' ? ' ' . esc_attr( $class ) : '' );
+		return "<!-- wp:columns$attrs -->\n<div class=\"$class_attr\">\n";
+	};
 	$columns_close = "</div>\n<!-- /wp:columns -->\n\n";
 	$table         = function ( $rows ) {
 		$html = '<!-- wp:table --><figure class="wp-block-table"><table><thead><tr>';
@@ -530,16 +613,21 @@ function pd_default_homepage_markup() {
 	$out = '';
 
 	/* 2. Feature strip */
-	$out .= $p( 'HD &middot; 2K &middot; 4K quality &middot; No watermark &middot; MP4, JPG, PNG, GIF supported &middot; Works on phone, tablet, and computer' );
+	$out .= $list( array(
+		'HD &middot; 2K &middot; 4K quality',
+		'No watermark',
+		'MP4, JPG, PNG, GIF supported',
+		'Works on phone, tablet, and computer',
+	), false, 'pd-pill-list' );
 
-	/* 3. How to Download a Pinterest Video */
+	/* 3. How to Download a Pinterest Video — pd-steps auto-numbers the columns. */
 	$out .= $h2( 'How to Download a Pinterest Video' );
 	$out .= $p( 'A Pinterest video downloader works in three steps. Open Pinterest and find the video you want. Tap the share icon and choose "Copy Link." Paste the link above and tap Download.' );
-	$out .= $list( array(
-		'Open Pinterest and find the video you want.',
-		'Tap the share icon and choose "Copy Link."',
-		'Paste the link above and tap Download.',
-	), true );
+	$out .= $columns_open( 'pd-steps' );
+	$out .= $feature_col( 'Open Pinterest', 'Open Pinterest and find the video you want.' );
+	$out .= $feature_col( 'Copy Link', 'Tap the share icon and choose &quot;Copy Link.&quot;' );
+	$out .= $feature_col( 'Paste &amp; Download', 'Paste the link above and tap Download.' );
+	$out .= $columns_close;
 	$out .= $p( 'Your video saves straight to your device. No app, no sign up.' );
 	$out .= $hint( "Add an Image block here for a tutorial screenshot (use the block inserter's \"+\")." );
 
@@ -590,29 +678,38 @@ function pd_default_homepage_markup() {
 	), true );
 	$out .= $hint( 'Add an Image block here for a screenshot.' );
 
-	/* 8. What This Tool Can and Can't Download */
+	/* 8. What This Tool Can and Can't Download — pd-good/pd-bad columns. */
 	$out .= $h2( "What This Tool Can and Can't Download" );
 	$out .= $p( "PinsDownload works with any public Pinterest link. It can't open anything that needs a Pinterest login." );
-	$out .= $table( array(
-		array( 'Works', "Doesn't Work" ),
-		array( 'Public pins and pin.it links', 'Private or login-only pins' ),
-		array( 'Videos, images, GIFs, stories, carousels', 'Deleted or removed pins' ),
-		array( 'Public boards and profiles', 'Invitation-only boards' ),
-		array( 'Idea Pins and Ideas pages', "Content you don't have rights to save" ),
+	$works_inner   = "<!-- wp:heading {\"level\":3} -->\n<h3>&#10003; What Works</h3>\n<!-- /wp:heading -->\n\n" . $list( array(
+		'Public pins and pin.it links',
+		'Videos, images, GIFs, stories, carousels',
+		'Public boards and profiles',
+		'Idea Pins and Ideas pages',
 	) );
+	$doesnt_inner  = "<!-- wp:heading {\"level\":3} -->\n<h3>&#10007; What Doesn't Work</h3>\n<!-- /wp:heading -->\n\n" . $list( array(
+		'Private or login-only pins',
+		'Deleted or removed pins',
+		'Invitation-only boards',
+		"Content you don't have rights to save",
+	) );
+	$out .= $columns_open();
+	$out .= $column( $works_inner, 'pd-good' );
+	$out .= $column( $doesnt_inner, 'pd-bad' );
+	$out .= $columns_close;
 
 	/* 9. Why People Use This Tool */
 	$out .= $h2( 'Why People Use This Tool' );
 	$out .= $p( "PinsDownload is built to be simple, honest, and free. Here's what that means in practice." );
-	$out .= $columns_open;
-	$out .= $col( 'Free, always.', 'No hidden charges, no daily limit.' );
-	$out .= $col( 'No watermark.', 'Your download looks exactly like the original.' );
-	$out .= $col( 'No login.', 'We never ask for your Pinterest password.' );
+	$out .= $columns_open();
+	$out .= $feature_col( 'Free, always.', 'No hidden charges, no daily limit.' );
+	$out .= $feature_col( 'No watermark.', 'Your download looks exactly like the original.' );
+	$out .= $feature_col( 'No login.', 'We never ask for your Pinterest password.' );
 	$out .= $columns_close;
-	$out .= $columns_open;
-	$out .= $col( 'Original quality.', 'Videos and images save in the same resolution Pinterest gives us.' );
-	$out .= $col( 'Works everywhere.', 'Phone, tablet, or computer, any browser.' );
-	$out .= $col( 'Honest about ads.', 'A small number of ads keep this tool free. They never sit on top of or look like the Download button.' );
+	$out .= $columns_open();
+	$out .= $feature_col( 'Original quality.', 'Videos and images save in the same resolution Pinterest gives us.' );
+	$out .= $feature_col( 'Works everywhere.', 'Phone, tablet, or computer, any browser.' );
+	$out .= $feature_col( 'Honest about ads.', 'A small number of ads keep this tool free. They never sit on top of or look like the Download button.' );
 	$out .= $columns_close;
 
 	/* 10. What Else You Can Download From Pinterest */
@@ -629,7 +726,7 @@ function pd_default_homepage_markup() {
 		'<strong>Ideas pages</strong> &mdash; save content straight from a Pinterest Ideas collection.',
 		'<strong>Answers pages</strong> &mdash; download pins shared on a Pinterest Answers page.',
 		'<strong>Shared pin links</strong> &mdash; paste any multi-pin share link and download everything in it.',
-	) );
+	), false, 'pd-card-list' );
 
 	/* 11. What Is a Pinterest Video Downloader? */
 	$out .= $h2( 'What Is a Pinterest Video Downloader?' );
@@ -663,11 +760,11 @@ function pd_default_homepage_markup() {
 		'<strong>Windows</strong> &mdash; Chrome, Edge',
 		'<strong>Mac</strong> &mdash; Safari, Chrome',
 		'<strong>Linux</strong> &mdash; Firefox, Chrome',
-	) );
+	), false, 'pd-card-list' );
 
-	/* 15. Is This Safe to Use? */
+	/* 15. Is This Safe to Use? — pd-callout gives it the centered info-card look. */
 	$out .= $h2( 'Is This Safe to Use?' );
-	$out .= $p( 'Yes. We never ask for your Pinterest username or password. You paste a public link, we fetch the file, and nothing you download is stored on our servers afterward. We use standard analytics to see which pages are useful, the same as most websites, but your download history stays private.' );
+	$out .= $p( 'Yes. We never ask for your Pinterest username or password. You paste a public link, we fetch the file, and nothing you download is stored on our servers afterward. We use standard analytics to see which pages are useful, the same as most websites, but your download history stays private.', 'pd-callout' );
 
 	/* 16. Trust Badges (DUMMY) */
 	$out .= $h2( 'Check Our Current Reputation' );
@@ -676,11 +773,11 @@ function pd_default_homepage_markup() {
 		'<a href="https://transparencyreport.google.com/safe-browsing/search?url=pinsdownload.org">Google Safe Browsing</a>',
 		'<a href="https://safeweb.norton.com/report?url=pinsdownload.org">Norton Safe Web</a>',
 		'<a href="https://sitecheck.sucuri.net/results/pinsdownload.org">Sucuri Scanner</a>',
-	) );
+	), false, 'pd-card-list' );
 
 	/* 17. Is It Legal to Download Pinterest Videos? */
 	$out .= $h2( 'Is It Legal to Download Pinterest Videos?' );
-	$out .= $p( "Downloading a Pinterest video for personal, offline use is generally fine. Reposting, selling, or reusing someone else's video without permission is not. Pinterest content belongs to the person who posted it, so always ask before using it publicly." );
+	$out .= $p( "Downloading a Pinterest video for personal, offline use is generally fine. Reposting, selling, or reusing someone else's video without permission is not. Pinterest content belongs to the person who posted it, so always ask before using it publicly.", 'pd-callout' );
 
 	/* 18. What Users Say (DUMMY — left empty, no fake reviews) */
 	$out .= $h2( 'What Users Say' );
@@ -696,7 +793,7 @@ function pd_default_homepage_markup() {
 		'How to Download a Full Pinterest Board (not published yet)',
 		'Is Downloading Pinterest Content Legal? (not published yet)',
 		'PinsDownload vs Other Downloaders (not published yet)',
-	) );
+	), false, 'pd-card-list' );
 
 	/* 21. FAQ — native Details blocks, real accordion, zero JS */
 	$out .= $h2( 'Frequently Asked Questions' );
@@ -725,7 +822,7 @@ function pd_default_homepage_markup() {
 		"<strong>Where do my downloads go?</strong> Your device's default Downloads folder, unless you choose another location.",
 		"<strong>Does this cost anything?</strong> No, it's free with no limits on single downloads.",
 		'<strong>Is this the same as a "pin saver"?</strong> Yes. PinsDownload works as a Pinterest saver too, paste any pin link and save it the same way.',
-	) );
+	), false, 'pd-card-list' );
 
 	/* 23. Other Tools */
 	$out .= $h2( 'Other Tools' );
@@ -735,7 +832,7 @@ function pd_default_homepage_markup() {
 		'Pinterest GIF Downloader (not published yet)',
 		'Pinterest Story Downloader (not published yet)',
 		'Pinterest Board Downloader (not published yet)',
-	) );
+	), false, 'pd-card-list' );
 
 	return $out;
 }
