@@ -171,6 +171,34 @@ everything, and the native Details block for the one part (FAQ) that
 needed some structure. Fewer moving parts, nothing to keep in sync,
 nothing to explain beyond "edit the page like a page."
 
+## Additional pages (`pages/` folder)
+
+Beyond the homepage, the site now has one page per tool (Image
+Downloader, Story Downloader, ...), each sharing the same core engine
+(`pinsdownload-core.php`, already deployed as an mu-plugin — a further
+evolution of `frontpage-editable-sections.php` above, with more icons,
+a smarter card-icon auto-mapper, and other polish). Each page needs
+exactly 2 files, both in `pages/`:
+
+- **`page-<slug>.php`** — a WordPress Page Template (has a
+  `Template Name:` header comment, so it shows up in the Page
+  Attributes → Template dropdown in wp-admin). Copy into the active
+  theme's folder once per page. Hero copy, the CTA, and the JSON-LD
+  schema (`SoftwareApplication` + `HowTo` + `FAQPage`, built live from
+  that page's own Details blocks, + `BreadcrumbList`) are specific to
+  that one page; everything else — icons, styles, the tool's logic —
+  comes from the shared core engine.
+- **`<slug>-content.html`** — the page's body copy as raw Gutenberg
+  block markup. Create a real WordPress Page, select the matching
+  Template in Page Attributes, open the block editor's Code Editor
+  (⋮ menu → "Code editor"), paste this in, and switch back to the
+  visual editor. Uses the same utility classes documented above
+  (`pd-steps`, `pd-good`/`pd-bad`, `pd-pill-list`, `pd-card-list`,
+  `pd-callout`) plus a few semantic `pd-section-*` labels on headings
+  (`pd-section-how`, `pd-section-faq`, ...) for consistency — those
+  labels aren't required for anything to render correctly, they're
+  just there so every page's sections are named the same way.
+
 ## After any file change: purge the cache
 
 If this site runs a page or object cache (e.g. LiteSpeed Cache),
